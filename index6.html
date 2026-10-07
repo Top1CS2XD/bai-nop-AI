@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Chấm Điểm & Đánh Giá Sáng Kiến Kinh Nghiệm (SKKN)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter and Tinos (Academic Serif) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        edu: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        },
+                        academic: {
+                            blue: '#1e3a8a',
+                            gold: '#d97706',
+                            slate: '#334155',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Tinos', 'Times New Roman', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Print Styling to simulate standard A4 official evaluation sheet */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable-evaluation, #printable-evaluation * {
+                visibility: visible;
+            }
+            #printable-evaluation {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0 !important;
+                padding: 15mm 20mm 15mm 25mm !important;
+                box-shadow: none !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            @page {
+                size: A4;
+                margin: 0;
+            }
+        }
+
+        .paper-sheet {
+            background-color: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-academic-blue via-blue-900 to-indigo-950 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white/10 p-2 rounded-lg border border-white/20">
+                    <i class="fa-solid fa-clipboard-check text-2xl text-amber-400"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight sm:text-xl">Hệ Thống Đánh Giá & Chấm Điểm SKKN</h1>
+                    <p class="text-xs text-blue-200 hidden sm:block">Hội đồng Giáo dục & Ban Giám hiệu - Chuẩn Khung 100 Điểm Ngành Giáo dục</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <button onclick="loadSampleData()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/30 transition flex items-center gap-1">
+                    <i class="fa-solid fa-flask"></i> Dữ liệu mẫu
+                </button>
+                <button onclick="window.print()" class="px-3.5 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-print"></i> In / Xuất PDF
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+        <!-- Top Info Input Panel -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <h2 class="text-sm font-bold text-academic-blue uppercase tracking-wider border-b pb-2 flex items-center justify-between">
+                <span><i class="fa-solid fa-folder-open me-2 text-amber-500"></i> Thông tin Đề tài & Tác giả</span>
+                <span class="text-xs text-slate-400 font-normal lowercase">Nhập thông tin trước khi chấm</span>
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <div class="md:col-span-2">
+                    <label class="block font-bold text-slate-700 mb-1 uppercase">Tên Đề tài Sáng kiến Kinh nghiệm</label>
+                    <input type="text" id="info-topic" value="Một số biện pháp ứng dụng CNTT và Trò chơi học tập nhằm nâng cao hứng thú học môn Tiếng Anh lớp 8" oninput="updateEvaluationSummary()" class="w-full p-2.5 border border-slate-300 rounded-lg font-semibold text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1 uppercase">Họ và tên Tác giả</label>
+                    <input type="text" id="info-author" value="Nguyễn Văn An" oninput="updateEvaluationSummary()" class="w-full p-2.5 border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1 uppercase">Đơn vị / Trường công tác</label>
+                    <input type="text" id="info-unit" value="Trường THCS Lê Quý Đôn" oninput="updateEvaluationSummary()" class="w-full p-2.5 border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1 uppercase">Lĩnh vực / Môn học</label>
+                    <input type="text" id="info-subject" value="Tiếng Anh - Cấp THCS" oninput="updateEvaluationSummary()" class="w-full p-2.5 border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1 uppercase">Người chấm / Giám khảo</label>
+                    <input type="text" id="info-evaluator" value="ThS. Trần Thị Mai (Chủ tịch Hội đồng)" oninput="updateEvaluationSummary()" class="w-full p-2.5 border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Grid Layout for Evaluation & Comparison -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Left 2 Columns: Scoring Rubric Form -->
+            <div class="lg:col-span-2 space-y-5">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between border-b pb-3 mb-4">
+                        <h2 class="text-sm font-bold text-academic-blue uppercase tracking-wide">
+                            <i class="fa-solid fa-list-check me-2 text-emerald-600"></i> Phiếu Chấm Điểm Chi Tiết (Thang 100 điểm)
+                        </h2>
+                        <span id="live-total-badge" class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full border border-emerald-300">
+                            Tổng: 85.0 / 100 Điểm
+                        </span>
+                    </div>
+
+                    <!-- Rubric Item 1 -->
+                    <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-2 mb-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-xs font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Tiêu chí 1</span>
+                                <h3 class="font-bold text-slate-800 text-sm mt-1">Tính mới và Tính sáng tạo (Tối đa 25 điểm)</h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Đề xuất giải pháp mới, cách làm mới có tính đột phá, không trùng lặp sao chép.</p>
+                            </div>
+                            <div class="text-right flex items-center gap-1">
+                                <input type="number" id="score-c1" min="0" max="25" value="21" oninput="syncRangeFromInput('c1'); calculateTotalScore();" class="w-16 p-1 text-center font-bold text-blue-800 bg-white border border-slate-300 rounded text-sm">
+                                <span class="text-xs font-bold text-slate-400">/25</span>
+                            </div>
+                        </div>
+                        <input type="range" id="range-c1" min="0" max="25" value="21" oninput="syncInputFromRange('c1'); calculateTotalScore();" class="w-full accent-blue-700 cursor-pointer">
+                        <div class="flex justify-between text-[11px] text-slate-400 font-medium">
+                            <span>0đ: Sao chép</span>
+                            <span>15đ: Có cải tiến nhẹ</span>
+                            <span>25đ: Đột phá, sáng tạo xuất sắc</span>
+                        </div>
+                    </div>
+
+                    <!-- Rubric Item 2 -->
+                    <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-2 mb-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-xs font-bold bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded">Tiêu chí 2</span>
+                                <h3 class="font-bold text-slate-800 text-sm mt-1">Tính thực tiễn & Phương pháp nghiên cứu (Tối đa 20 điểm)</h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Khảo sát thực trạng chặt chẽ, cơ sở lý luận vững chắc, đúng thực tế nhà trường.</p>
+                            </div>
+                            <div class="text-right flex items-center gap-1">
+                                <input type="number" id="score-c2" min="0" max="20" value="17" oninput="syncRangeFromInput('c2'); calculateTotalScore();" class="w-16 p-1 text-center font-bold text-indigo-800 bg-white border border-slate-300 rounded text-sm">
+                                <span class="text-xs font-bold text-slate-400">/20</span>
+                            </div>
+                        </div>
+                        <input type="range" id="range-c2" min="0" max="20" value="17" oninput="syncInputFromRange('c2'); calculateTotalScore();" class="w-full accent-indigo-700 cursor-pointer">
+                        <div class="flex justify-between text-[11px] text-slate-400 font-medium">
+                            <span>0đ: Rời rạc</span>
+                            <span>12đ: Đạt cơ bản</span>
+                            <span>20đ: Logic, thực tiễn cao</span>
+                        </div>
+                    </div>
+
+                    <!-- Rubric Item 3 -->
+                    <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-2 mb-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-xs font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">Tiêu chí 3</span>
+                                <h3 class="font-bold text-slate-800 text-sm mt-1">Tính hiệu quả & Số liệu minh chứng (Tối đa 25 điểm)</h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Có bảng đối chứng Trước/Sau áp dụng, bằng chứng sự tiến bộ của học sinh.</p>
+                            </div>
+                            <div class="text-right flex items-center gap-1">
+                                <input type="number" id="score-c3" min="0" max="25" value="22" oninput="syncRangeFromInput('c3'); calculateTotalScore();" class="w-16 p-1 text-center font-bold text-emerald-800 bg-white border border-slate-300 rounded text-sm">
+                                <span class="text-xs font-bold text-slate-400">/25</span>
+                            </div>
+                        </div>
+                        <input type="range" id="range-c3" min="0" max="25" value="22" oninput="syncInputFromRange('c3'); calculateTotalScore();" class="w-full accent-emerald-700 cursor-pointer">
+                        <div class="flex justify-between text-[11px] text-slate-400 font-medium">
+                            <span>0đ: Không minh chứng</span>
+                            <span>15đ: Minh chứng chung</span>
+                            <span>25đ: Số liệu thuyết phục</span>
+                        </div>
+                    </div>
+
+                    <!-- Rubric Item 4 -->
+                    <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-2 mb-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-xs font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded">Tiêu chí 4</span>
+                                <h3 class="font-bold text-slate-800 text-sm mt-1">Tính khả thi & Khả năng nhân rộng (Tối đa 15 điểm)</h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Dễ áp dụng cho đồng nghiệp, chi phí thấp, triển khai rộng cho các lớp khác.</p>
+                            </div>
+                            <div class="text-right flex items-center gap-1">
+                                <input type="number" id="score-c4" min="0" max="15" value="13" oninput="syncRangeFromInput('c4'); calculateTotalScore();" class="w-16 p-1 text-center font-bold text-amber-800 bg-white border border-slate-300 rounded text-sm">
+                                <span class="text-xs font-bold text-slate-400">/15</span>
+                            </div>
+                        </div>
+                        <input type="range" id="range-c4" min="0" max="15" value="13" oninput="syncInputFromRange('c4'); calculateTotalScore();" class="w-full accent-amber-600 cursor-pointer">
+                        <div class="flex justify-between text-[11px] text-slate-400 font-medium">
+                            <span>0đ: Khó nhân rộng</span>
+                            <span>9đ: Nhân rộng hẹp</span>
+                            <span>15đ: Nhân rộng toàn ngành</span>
+                        </div>
+                    </div>
+
+                    <!-- Rubric Item 5 -->
+                    <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-xs font-bold bg-rose-100 text-rose-800 px-2 py-0.5 rounded">Tiêu chí 5</span>
+                                <h3 class="font-bold text-slate-800 text-sm mt-1">Hình thức trình bày & Văn phong sư phạm (Tối đa 15 điểm)</h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Đúng quy chuẩn thể thức A4 (Font Times New Roman, dãn dòng 1.5, lề chuẩn, không lỗi chính tả).</p>
+                            </div>
+                            <div class="text-right flex items-center gap-1">
+                                <input type="number" id="score-c5" min="0" max="15" value="12" oninput="syncRangeFromInput('c5'); calculateTotalScore();" class="w-16 p-1 text-center font-bold text-rose-800 bg-white border border-slate-300 rounded text-sm">
+                                <span class="text-xs font-bold text-slate-400">/15</span>
+                            </div>
+                        </div>
+                        <input type="range" id="range-c5" min="0" max="15" value="12" oninput="syncInputFromRange('c5'); calculateTotalScore();" class="w-full accent-rose-700 cursor-pointer">
+                        <div class="flex justify-between text-[11px] text-slate-400 font-medium">
+                            <span>0đ: Sai thể thức</span>
+                            <span>9đ: Đạt thể thức</span>
+                            <span>15đ: Chuẩn mực tuyệt đối</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Feedback Input Panel -->
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                    <h2 class="text-sm font-bold text-academic-blue uppercase tracking-wide flex items-center gap-2">
+                        <i class="fa-solid fa-comment-dots text-amber-500"></i> Nhận xét & Đánh giá Chi tiết của Giám khảo
+                    </h2>
+                    <textarea id="custom-remarks" rows="3" oninput="updateEvaluationSummary()" class="w-full p-3 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Nhập nhận xét chi tiết về ưu điểm, hạn chế và hướng cải tiến..."></textarea>
+                </div>
+            </div>
+
+            <!-- Right Column: Auto Classification, Multi-Judge Comparison & Summary -->
+            <div class="space-y-5">
+                
+                <!-- Classification Card -->
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm text-center space-y-3">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Kết quả Đánh giá Tổng hợp</span>
+                    <div id="result-score-display" class="text-4xl font-extrabold text-emerald-600">85.0 / 100</div>
+                    <div id="result-rank-badge" class="inline-block px-4 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        Xếp loại: TỐT (Cấp Huyện / Quận)
+                    </div>
+                    <p id="result-rank-desc" class="text-xs text-slate-500 px-2">Sáng kiến kinh nghiệm đạt chất lượng tốt, có giải pháp rõ ràng và khả năng áp dụng thực tiễn cao.</p>
+                </div>
+
+                <!-- Multi-Judge Discrepancy Tool -->
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                    <h3 class="text-xs font-bold text-academic-blue uppercase tracking-wider border-b pb-2 flex items-center justify-between">
+                        <span><i class="fa-solid fa-users text-blue-600 me-1"></i> So sánh Điểm Hội đồng</span>
+                        <span id="discrepancy-status" class="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold">Đồng thuận</span>
+                    </h3>
+
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between items-center bg-slate-50 p-2 rounded border">
+                            <span class="font-medium text-slate-700">Giám khảo 1 (Đang chấm):</span>
+                            <span id="judge1-score-val" class="font-bold text-blue-700">85.0</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-slate-50 p-2 rounded border">
+                            <span class="font-medium text-slate-700">Giám khảo 2:</span>
+                            <input type="number" id="judge2-score" value="82.0" min="0" max="100" oninput="calculateMultiJudgeAverage()" class="w-16 p-1 text-center font-bold border rounded bg-white">
+                        </div>
+                        <div class="flex justify-between items-center bg-slate-50 p-2 rounded border">
+                            <span class="font-medium text-slate-700">Giám khảo 3:</span>
+                            <input type="number" id="judge3-score" value="86.0" min="0" max="100" oninput="calculateMultiJudgeAverage()" class="w-16 p-1 text-center font-bold border rounded bg-white">
+                        </div>
+                    </div>
+
+                    <div class="pt-2 border-t flex justify-between items-center">
+                        <span class="text-xs font-bold text-slate-800">Điểm Trung bình Cộng:</span>
+                        <span id="final-avg-score" class="text-base font-extrabold text-emerald-700">84.33 Điểm</span>
+                    </div>
+
+                    <div id="discrepancy-alert" class="hidden p-2.5 bg-rose-50 border border-rose-200 rounded text-[11px] text-rose-700 font-medium">
+                        <i class="fa-solid fa-triangle-exclamation me-1"></i> <strong>Cảnh báo lệch điểm:</strong> Điểm giữa các giám khảo lệch trên 10 điểm. Cần hội ý thống nhất!
+                    </div>
+                </div>
+
+                <!-- Automated AI Remarks Suggestion Card -->
+                <div class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-5 rounded-xl shadow-sm space-y-3">
+                    <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Gợi ý Nhận xét Tự động
+                    </h3>
+                    <div id="ai-generated-feedback" class="text-xs text-slate-300 leading-relaxed italic space-y-1">
+                        <!-- Filled by JS -->
+                    </div>
+                    <button onclick="applyAIFeedback()" class="w-full py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-lg transition shadow">
+                        Chèn nhận xét này vào phiếu
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Official Printable Evaluation Form View (Hidden on web, visible on print or preview) -->
+        <div class="mt-8 bg-slate-200 p-4 sm:p-8 rounded-xl flex justify-center no-print">
+            <div id="printable-evaluation" class="paper-sheet font-serif text-slate-900 w-full max-w-[210mm] p-8 space-y-4">
+                
+                <!-- Official Header Block -->
+                <div class="flex justify-between items-start text-center border-b-2 border-slate-900 pb-3">
+                    <div class="w-1/2 text-xs uppercase font-bold space-y-1">
+                        <p id="pr-unit-header">TRƯỜNG THCS LÊ QUÝ ĐÔN</p>
+                        <p class="underline">HỘI ĐỒNG CHẤM SKKN</p>
+                    </div>
+                    <div class="w-1/2 text-xs font-bold space-y-1">
+                        <p class="uppercase">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
+                        <p class="italic lowercase font-normal">Độc lập - Tự do - Hạnh phúc</p>
+                    </div>
+                </div>
+
+                <!-- Form Title -->
+                <div class="text-center space-y-1 pt-2">
+                    <h2 class="font-bold text-lg uppercase tracking-wide">PHIẾU ĐÁNH GIÁ, CHẤM ĐIỂM SÁNG KIẾN KINH NGHIỆM</h2>
+                    <p class="text-xs italic">Năm học 2025 - 2026</p>
+                </div>
+
+                <!-- Meta Details -->
+                <div class="text-xs space-y-1.5 pt-2">
+                    <p><strong>Tên sáng kiến kinh nghiệm:</strong> <span id="pr-topic" class="italic">...</span></p>
+                    <p><strong>Tác giả sáng kiến:</strong> <span id="pr-author">...</span></p>
+                    <p><strong>Lĩnh vực / Môn học:</strong> <span id="pr-subject">...</span></p>
+                    <p><strong>Họ và tên Giám khảo / Người chấm:</strong> <span id="pr-evaluator">...</span></p>
+                </div>
+
+                <!-- Official Table -->
+                <table class="w-full border-collapse border border-slate-900 text-xs text-center my-3">
+                    <thead>
+                        <tr class="bg-slate-100 font-bold">
+                            <th class="border border-slate-900 p-2 w-12">STT</th>
+                            <th class="border border-slate-900 p-2 text-left">Tiêu chí đánh giá</th>
+                            <th class="border border-slate-900 p-2 w-20">Điểm tối đa</th>
+                            <th class="border border-slate-900 p-2 w-24">Điểm chấm</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="border border-slate-900 p-2 font-bold">1</td>
+                            <td class="border border-slate-900 p-2 text-left font-semibold">Tính mới và Tính sáng tạo</td>
+                            <td class="border border-slate-900 p-2">25</td>
+                            <td class="border border-slate-900 p-2 font-bold" id="pr-c1">21</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-slate-900 p-2 font-bold">2</td>
+                            <td class="border border-slate-900 p-2 text-left font-semibold">Tính thực tiễn & Phương pháp nghiên cứu</td>
+                            <td class="border border-slate-900 p-2">20</td>
+                            <td class="border border-slate-900 p-2 font-bold" id="pr-c2">17</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-slate-900 p-2 font-bold">3</td>
+                            <td class="border border-slate-900 p-2 text-left font-semibold">Tính hiệu quả & Số liệu minh chứng</td>
+                            <td class="border border-slate-900 p-2">25</td>
+                            <td class="border border-slate-900 p-2 font-bold" id="pr-c3">22</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-slate-900 p-2 font-bold">4</td>
+                            <td class="border border-slate-900 p-2 text-left font-semibold">Tính khả thi & Khả năng nhân rộng</td>
+                            <td class="border border-slate-900 p-2">15</td>
+                            <td class="border border-slate-900 p-2 font-bold" id="pr-c4">13</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-slate-900 p-2 font-bold">5</td>
+                            <td class="border border-slate-900 p-2 text-left font-semibold">Hình thức trình bày & Văn phong sư phạm</td>
+                            <td class="border border-slate-900 p-2">15</td>
+                            <td class="border border-slate-900 p-2 font-bold" id="pr-c5">12</td>
+                        </tr>
+                        <tr class="bg-slate-100 font-bold text-sm">
+                            <td colspan="2" class="border border-slate-900 p-2 text-right">TỔNG CỘNG CỦA GIÁM KHẢO:</td>
+                            <td class="border border-slate-900 p-2">100</td>
+                            <td class="border border-slate-900 p-2 text-emerald-800" id="pr-total">85.0</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Summary Rank & Remarks -->
+                <div class="text-xs space-y-2 pt-1">
+                    <p><strong>Xếp loại sáng kiến:</strong> <span id="pr-rank" class="font-bold uppercase">...</span></p>
+                    <p><strong>Nhận xét, đánh giá của Giám khảo:</strong></p>
+                    <div id="pr-remarks-box" class="p-3 border border-slate-400 italic rounded text-justify bg-slate-50 min-h-[60px]">
+                        ...
+                    </div>
+                </div>
+
+                <!-- Signatures -->
+                <div class="pt-8 flex justify-between items-start text-center text-xs">
+                    <div class="w-1/2">
+                        <p class="font-bold uppercase">ĐỒNG GIÁM KHẢO CHẤM</p>
+                        <p class="italic text-[10px] text-slate-500">(Ký, ghi rõ họ tên)</p>
+                    </div>
+                    <div class="w-1/2">
+                        <p class="italic text-slate-700" id="pr-date">..., ngày ... tháng ... năm ...</p>
+                        <p class="font-bold uppercase mt-1">GIÁM KHẢO CHẤM ĐÁNH GIÁ</p>
+                        <div class="h-16"></div>
+                        <p class="font-bold" id="pr-evaluator-sign">...</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Synchronize Slider Range and Input Number
+        function syncInputFromRange(id) {
+            const val = document.getElementById(`range-${id}`).value;
+            document.getElementById(`score-${id}`).value = val;
+        }
+
+        function syncRangeFromInput(id) {
+            let val = parseFloat(document.getElementById(`score-${id}`).value) || 0;
+            const max = parseInt(document.getElementById(`range-${id}`).max);
+            if (val > max) val = max;
+            if (val < 0) val = 0;
+            document.getElementById(`score-${id}`).value = val;
+            document.getElementById(`range-${id}`).value = val;
+        }
+
+        // Calculate Total Score & Rank Classification
+        function calculateTotalScore() {
+            const c1 = parseFloat(document.getElementById('score-c1').value) || 0;
+            const c2 = parseFloat(document.getElementById('score-c2').value) || 0;
+            const c3 = parseFloat(document.getElementById('score-c3').value) || 0;
+            const c4 = parseFloat(document.getElementById('score-c4').value) || 0;
+            const c5 = parseFloat(document.getElementById('score-c5').value) || 0;
+
+            const total = c1 + c2 + c3 + c4 + c5;
+            
+            // Badge & Result text
+            document.getElementById('live-total-badge').innerText = `Tổng: ${total.toFixed(1)} / 100 Điểm`;
+            document.getElementById('result-score-display').innerText = `${total.toFixed(1)} / 100`;
+            document.getElementById('judge1-score-val').innerText = total.toFixed(1);
+
+            // Classification Logic based on MoET Standards
+            let rank = "";
+            let rankClass = "";
+            let desc = "";
+
+            if (total >= 90) {
+                rank = "XUẤT SẮC (Đề nghị cấp Tỉnh/Thành phố)";
+                rankClass = "bg-purple-100 text-purple-800 border-purple-300";
+                desc = "Đề tài mang tính đột phá cao, giải pháp độc đáo, minh chứng vô cùng thuyết phục và khả năng nhân rộng rộng rãi.";
+            } else if (total >= 80) {
+                rank = "TỐT (Cấp Huyện / Quận / Thị xã)";
+                rankClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
+                desc = "Sáng kiến kinh nghiệm đạt chất lượng tốt, có giải pháp rõ ràng và khả năng áp dụng thực tiễn cao.";
+            } else if (total >= 65) {
+                rank = "KHÁ (Cấp Trường)";
+                rankClass = "bg-blue-100 text-blue-800 border-blue-300";
+                desc = "Đề tài đáp ứng đầy đủ yêu cầu cơ bản, có đóng góp thiết thực cho đơn vị giảng dạy.";
+            } else if (total >= 50) {
+                rank = "ĐẠT (Mức chấp nhận)";
+                rankClass = "bg-amber-100 text-amber-800 border-amber-300";
+                desc = "Đề tài còn một số hạn chế nhỏ về minh chứng hoặc giải pháp nhưng có thể áp dụng nội bộ.";
+            } else {
+                rank = "KHÔNG ĐẠT";
+                rankClass = "bg-rose-100 text-rose-800 border-rose-300";
+                desc = "Đề tài chưa đáp ứng yêu cầu tính mới, thiếu bằng chứng thực tế hoặc trùng lặp ý tưởng.";
+            }
+
+            const badgeEl = document.getElementById('result-rank-badge');
+            badgeEl.className = `inline-block px-4 py-1.5 rounded-full text-xs font-bold border ${rankClass}`;
+            badgeEl.innerText = `Xếp loại: ${rank}`;
+            document.getElementById('result-rank-desc').innerText = desc;
+
+            // Generate AI Remarks Feedback
+            generateAIFeedback(c1, c2, c3, c4, c5, total, rank);
+
+            // Update Multi-judge Average
+            calculateMultiJudgeAverage();
+
+            // Update Printable View
+            updateEvaluationSummary();
+        }
+
+        // Multi-Judge Comparison Algorithm
+        function calculateMultiJudgeAverage() {
+            const j1 = parseFloat(document.getElementById('judge1-score-val').innerText) || 0;
+            const j2 = parseFloat(document.getElementById('judge2-score').value) || 0;
+            const j3 = parseFloat(document.getElementById('judge3-score').value) || 0;
+
+            const avg = (j1 + j2 + j3) / 3;
+            document.getElementById('final-avg-score').innerText = `${avg.toFixed(2)} Điểm`;
+
+            // Check Discrepancy Alert (>10 points difference)
+            const maxScore = Math.max(j1, j2, j3);
+            const minScore = Math.min(j1, j2, j3);
+            const diff = maxScore - minScore;
+
+            const alertEl = document.getElementById('discrepancy-alert');
+            const statusEl = document.getElementById('discrepancy-status');
+
+            if (diff > 10) {
+                alertEl.classList.remove('hidden');
+                statusEl.className = "text-[10px] bg-rose-100 text-rose-700 px-2 py-0.5 rounded font-bold";
+                statusEl.innerText = "Lệch điểm (>10đ)";
+            } else {
+                alertEl.classList.add('hidden');
+                statusEl.className = "text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold";
+                statusEl.innerText = "Đồng thuận";
+            }
+        }
+
+        // Auto Generate Pedagogical Remarks Suggestions
+        function generateAIFeedback(c1, c2, c3, c4, c5, total, rank) {
+            let strengths = [];
+            let weaknesses = [];
+
+            if (c1 >= 20) strengths.push("Ý tưởng sáng tạo, có sự đổi mới linh hoạt");
+            else weaknesses.push("Cần làm nổi bật hơn tính mới và sự khác biệt của giải pháp");
+
+            if (c3 >= 20) strengths.push("Số liệu minh chứng rõ ràng, có bảng đối chứng thuyết phục");
+            else weaknesses.push("Cần bổ sung thêm bảng biểu số liệu khảo sát đối chứng trước và sau áp dụng");
+
+            if (c5 >= 13) strengths.push("Hình thức trình bày đẹp, chuẩn quy định thể thức A4");
+            else weaknesses.push("Cần rà soát lại lỗi chính tả và căn lề đúng chuẩn 3-2-2-2");
+
+            let generatedText = `Sáng kiến kinh nghiệm đạt tổng điểm ${total.toFixed(1)}/100 (${rank}). `;
+            if (strengths.length > 0) {
+                generatedText += `Ưu điểm nổi bật: ${strengths.join('; ')}. `;
+            }
+            if (weaknesses.length > 0) {
+                generatedText += `Hạn chế cần cải tiến: ${weaknesses.join('; ')}.`;
+            }
+
+            document.getElementById('ai-generated-feedback').innerText = `"${generatedText}"`;
+        }
+
+        function applyAIFeedback() {
+            const aiText = document.getElementById('ai-generated-feedback').innerText.replace(/^"|"$/g, '');
+            document.getElementById('custom-remarks').value = aiText;
+            updateEvaluationSummary();
+        }
+
+        // Update Summary to Official Print View
+        function updateEvaluationSummary() {
+            const getValue = (id) => document.getElementById(id) ? document.getElementById(id).value : '';
+
+            document.getElementById('pr-unit-header').innerText = getValue('info-unit').toUpperCase();
+            document.getElementById('pr-topic').innerText = getValue('info-topic');
+            document.getElementById('pr-author').innerText = getValue('info-author');
+            document.getElementById('pr-subject').innerText = getValue('info-subject');
+            document.getElementById('pr-evaluator').innerText = getValue('info-evaluator');
+            document.getElementById('pr-evaluator-sign').innerText = getValue('info-evaluator');
+
+            // Scores
+            document.getElementById('pr-c1').innerText = getValue('score-c1');
+            document.getElementById('pr-c2').innerText = getValue('score-c2');
+            document.getElementById('pr-c3').innerText = getValue('score-c3');
+            document.getElementById('pr-c4').innerText = getValue('score-c4');
+            document.getElementById('pr-c5').innerText = getValue('score-c5');
+
+            const total = parseFloat(document.getElementById('result-score-display').innerText) || 0;
+            document.getElementById('pr-total').innerText = total.toFixed(1);
+            document.getElementById('pr-rank').innerText = document.getElementById('result-rank-badge').innerText.replace('Xếp loại: ', '');
+            document.getElementById('pr-remarks-box').innerText = getValue('custom-remarks') || 'Chưa có nhận xét thêm.';
+
+            const today = new Date();
+            document.getElementById('pr-date').innerText = `..., ngày ${today.getDate()} tháng ${today.getMonth()+1} năm ${today.getFullYear()}`;
+        }
+
+        // Load Sample Data
+        function loadSampleData() {
+            document.getElementById('info-topic').value = "Ứng dụng Trò chơi trực tuyến Quizizz và Sơ đồ tư duy trong dạy học từ vựng Tiếng Anh lớp 8";
+            document.getElementById('info-author').value = "Lê Thị Hồng Thắm";
+            document.getElementById('info-unit').value = "Trường THCS Nguyễn Du";
+            document.getElementById('info-subject').value = "Môn Tiếng Anh";
+            document.getElementById('info-evaluator').value = "PGS.TS Nguyễn Văn Bình";
+
+            document.getElementById('score-c1').value = 22;
+            document.getElementById('score-c2').value = 18;
+            document.getElementById('score-c3').value = 23;
+            document.getElementById('score-c4').value = 14;
+            document.getElementById('score-c5').value = 14;
+
+            ['c1','c2','c3','c4','c5'].forEach(syncRangeFromInput);
+            calculateTotalScore();
+            applyAIFeedback();
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            calculateTotalScore();
+        };
+    </script>
+</body>
+</html>
