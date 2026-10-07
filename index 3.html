@@ -1,1 +1,438 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trợ Lý AI: Chuyển Giáo Án Thành Slide Bài Giảng</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- pptxgenjs to export PPTX directly -->
+    <script src="https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .slide-preview {
+            aspect-ratio: 16 / 9;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
+    <!-- Header -->
+    <header class="bg-indigo-700 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white/10 p-2 rounded-lg">
+                    <i data-lucide="presentation" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">Trợ Lý AI Soạn Bài Giảng</h1>
+                    <p class="text-xs text-indigo-200">Chuyển đổi Giáo án / Kế hoạch bài dạy thành PowerPoint</p>
+                </div>
+            </div>
+            <span class="bg-indigo-600 text-xs text-indigo-100 px-3 py-1 rounded-full border border-indigo-500 flex items-center gap-1">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Chuẩn BGD & ĐT
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Column: Input Form & Lesson Plan -->
+        <section class="lg:col-span-5 bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-4">
+            <div class="border-b border-slate-100 pb-3 flex justify-between items-center">
+                <h2 class="font-semibold text-slate-800 flex items-center gap-2">
+                    <i data-lucide="file-text" class="w-5 h-5 text-indigo-600"></i>
+                    Thông Tin & Kế Hoạch Bài Dạy
+                </h2>
+                <button onclick="loadSampleData()" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium underline">
+                    Tải giáo án mẫu
+                </button>
+            </div>
+
+            <!-- Basic Info Form -->
+            <div class="grid grid-cols-2 gap-3 text-sm">
+                <div class="col-span-2">
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Tên Bài Học / Chủ Đề *</label>
+                    <input type="text" id="lessonTitle" placeholder="Ví dụ: Bài 1. Nguyên tử - Cấu tạo nguyên tử" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Môn Học *</label>
+                    <input type="text" id="subject" placeholder="Ví dụ: KHTN / Ngữ Văn" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Khối Lớp *</label>
+                    <input type="text" id="grade" placeholder="Ví dụ: Lớp 7" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Giáo Viên Giảng Dạy</label>
+                    <input type="text" id="teacherName" placeholder="Ví dụ: Nguyễn Văn A" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="flex-1 flex flex-col">
+                <label class="block text-xs font-medium text-slate-600 mb-1">Nội dung Kế Hoạch Bài Dạy / Giáo Án *</label>
+                <textarea id="lessonContent" placeholder="Dán nội dung giáo án (Mục tiêu, Hoạt động 1, Hoạt động 2, Luyện tập, Vận dụng...) vào đây..." class="w-full flex-1 p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm resize-none min-h-[220px]"></textarea>
+            </div>
+
+            <!-- Action Button -->
+            <button onclick="processLessonPlan()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg font-medium shadow-sm transition flex items-center justify-center gap-2">
+                <i data-lucide="wand2" class="w-4 h-4"></i>
+                Phân Tích & Tạo Slide Bài Giảng
+            </button>
+        </section>
+
+        <!-- Right Column: Slide Preview & Export Options -->
+        <section class="lg:col-span-7 flex flex-col gap-4">
+            
+            <!-- Controls Bar -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <span id="slideCount" class="bg-indigo-50 text-indigo-700 font-semibold px-2.5 py-1 rounded-md text-xs border border-indigo-100">
+                        0 Slide
+                    </span>
+                    <span class="text-xs text-slate-500">Xem trước & chỉnh sửa</span>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <button onclick="exportToPPTX()" id="exportBtn" disabled class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm px-4 py-2 rounded-lg font-medium flex items-center gap-2 shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        Tải File PowerPoint (.pptx)
+                    </button>
+                    <button onclick="copyVBACode()" id="vbaBtn" disabled class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm px-3 py-2 rounded-lg font-medium flex items-center gap-1.5 border border-slate-300 transition disabled:opacity-50 disabled:cursor-not-allowed" title="Copy mã VBA chạy trực tiếp trong PowerPoint">
+                        <i data-lucide="code" class="w-4 h-4"></i>
+                        Copy VBA
+                    </button>
+                </div>
+            </div>
+
+            <!-- Slides Display Container -->
+            <div id="slidesContainer" class="flex-1 bg-slate-200/60 rounded-xl p-4 overflow-y-auto max-h-[650px] space-y-4 border border-slate-300/50 flex flex-col items-center justify-center text-slate-400">
+                <i data-lucide="layout" class="w-12 h-12 stroke-[1.5]"></i>
+                <p class="text-sm">Vui lòng nhập giáo án và nhấn "Phân Tích & Tạo Slide Bài Giảng"</p>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-slate-900 text-white px-4 py-2.5 rounded-lg shadow-lg text-sm flex items-center gap-2 translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+        <span id="toastMessage">Thông báo</span>
+    </div>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        let generatedSlides = [];
+
+        // Sample Lesson Plan Data
+        function loadSampleData() {
+            document.getElementById('lessonTitle').value = "Bài 1. Nguyên tử - Cấu tạo nguyên tử";
+            document.getElementById('subject').value = "Khoa học tự nhiên";
+            document.getElementById('grade').value = "Lớp 7";
+            document.getElementById('teacherName').value = "Thầy Nguyễn Văn A";
+            document.getElementById('lessonContent').value = 
+`I. MỤC TIÊU
+1. Kiến thức: Nêu được mô hình nguyên tử đơn giản của Rutherford - Bohr. Nhận biết được cấu tạo nguyên tử gồm hạt nhân và vỏ electron.
+2. Năng lực: Xác định được số hạt proton, electron trong một nguyên tử.
+3. Phẩm chất: Cẩn thận, ham học hỏi.
+
+II. HOẠT ĐỘNG 1: KHỞI ĐỘNG
+- Câu hỏi đặt ra: Vạn vật xung quanh chúng ta đều được cấu tạo từ chất. Vậy chất được tạo nên từ thành phần nhỏ nhất nào?
+- Cho học sinh quan sát giọt nước và thảo luận cặp đôi trong 2 phút.
+
+III. HOẠT ĐỘNG 2: HÌNH THÀNH KIẾN THỨC
+1. Mô hình nguyên tử Rutherford - Bohr
+- Nguyên tử có kích thước cực kỳ nhỏ bé.
+- Nguyên tử gồm: Hạt nhân mang điện tích dương ở tâm và các Electron mang điện tích âm quay xung quanh hạt nhân.
+2. Hạt nhân nguyên tử
+- Chứa các hạt Proton (kí hiệu: p, mang điện tích dương +) và Neutron (kí hiệu: n, không mang điện).
+- Trong nguyên tử, số hạt proton luôn bằng số hạt electron (nguyên tử trung hòa về điện).
+
+IV. HOẠT ĐỘNG 3: LUYỆN TẬP
+- Bài tập 1: Cho nguyên tử Carbon có 6 electron trong vỏ. Hỏi Carbon có bao nhiêu proton trong hạt nhân?
+- Bài tập 2: Quan sát sơ đồ mô hình nguyên tử Helium và gọi tên các hạt cấu tạo nên nó.
+
+V. HOẠT ĐỘNG 4: VẬN DỤNG & DẶN DÒ
+- Vẽ sơ đồ tư duy tóm tắt cấu tạo nguyên tử vào vở.
+- Làm bài tập trong Sách bài tập trang 12.
+- Chuẩn bị bài mới: Nguyên tố hóa học.`;
+
+            showToast("Đã tải giáo án mẫu thành công!");
+        }
+
+        // Process Lesson Plan text into structured Slides
+        function processLessonPlan() {
+            const title = document.getElementById('lessonTitle').value.trim();
+            const subject = document.getElementById('subject').value.trim();
+            const grade = document.getElementById('grade').value.trim();
+            const teacher = document.getElementById('teacherName').value.trim();
+            const rawContent = document.getElementById('lessonContent').value.trim();
+
+            if (!title || !rawContent) {
+                alert("Vui lòng điền Tên bài học và Nội dung kế hoạch bài dạy!");
+                return;
+            }
+
+            generatedSlides = [];
+
+            // 1. Title Slide
+            generatedSlides.push({
+                type: 'title',
+                title: title.toUpperCase(),
+                subtitle: `${subject ? subject + ' - ' : ''}${grade}`,
+                footer: teacher ? `Giáo viên: ${teacher}` : '',
+                notes: 'Slide Bìa: Chào mừng học sinh vào bài học mới.'
+            });
+
+            // Parse text lines
+            const lines = rawContent.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            
+            let currentSlide = null;
+
+            lines.forEach(line => {
+                // Check section headers
+                if (line.match(/^(I|II|III|IV|V|VI)\.|MỤC TIÊU|HOẠT ĐỘNG|KHỞI ĐỘNG|LUYỆN TẬP|VẬN DỤNG/i)) {
+                    if (currentSlide && currentSlide.bullets.length > 0) {
+                        generatedSlides.push(currentSlide);
+                    }
+                    currentSlide = {
+                        type: 'content',
+                        title: cleanHeading(line),
+                        bullets: [],
+                        notes: 'Giải thích chi tiết cho học sinh theo tiến trình bài học.'
+                    };
+                } else if (line.startsWith('1.') || line.startsWith('2.') || line.startsWith('3.')) {
+                    if (!currentSlide) {
+                        currentSlide = { type: 'content', title: title, bullets: [], notes: '' };
+                    }
+                    // If current slide has too many bullets, wrap to new slide
+                    if (currentSlide.bullets.length >= 5) {
+                        generatedSlides.push(currentSlide);
+                        currentSlide = {
+                            type: 'content',
+                            title: currentSlide.title + ' (Tiếp theo)',
+                            bullets: [],
+                            notes: ''
+                        };
+                    }
+                    currentSlide.bullets.push(line);
+                } else if (line.startsWith('-') || line.startsWith('+') || line.startsWith('*')) {
+                    if (!currentSlide) {
+                        currentSlide = { type: 'content', title: 'Nội dung bài học', bullets: [], notes: '' };
+                    }
+                    if (currentSlide.bullets.length >= 5) {
+                        generatedSlides.push(currentSlide);
+                        currentSlide = {
+                            type: 'content',
+                            title: currentSlide.title + ' (Tiếp theo)',
+                            bullets: [],
+                            notes: ''
+                        };
+                    }
+                    currentSlide.bullets.push(line.replace(/^[-+*]\s*/, ''));
+                } else {
+                    if (!currentSlide) {
+                        currentSlide = { type: 'content', title: 'Giới thiệu', bullets: [], notes: '' };
+                    }
+                    if (line.length < 80) {
+                        currentSlide.bullets.push(line);
+                    } else {
+                        // Break long lines
+                        currentSlide.bullets.push(line.substring(0, 75) + '...');
+                    }
+                }
+            });
+
+            if (currentSlide && currentSlide.bullets.length > 0) {
+                generatedSlides.push(currentSlide);
+            }
+
+            // Summary Slide
+            generatedSlides.push({
+                type: 'summary',
+                title: 'TỔNG KẾT BÀI HỌC',
+                bullets: [
+                    'Ôn tập lại các khái niệm trọng tâm trong bài.',
+                    'Hoàn thành bài tập về nhà trong Sách Bài Tập.',
+                    'Đọc trước nội dung bài học tiếp theo.'
+                ],
+                notes: 'Nhắc nhở dặn dò học sinh cuối buổi học.'
+            });
+
+            renderSlidesUI();
+            
+            // Enable buttons
+            document.getElementById('exportBtn').disabled = false;
+            document.getElementById('vbaBtn').disabled = false;
+            document.getElementById('slideCount').innerText = `${generatedSlides.length} Slide`;
+
+            showToast(`Đã phân tích thành công ${generatedSlides.length} Slide!`);
+        }
+
+        function cleanHeading(str) {
+            return str.replace(/^(I|II|III|IV|V|VI)\.\s*/i, '').trim();
+        }
+
+        // Render Slide Cards in Preview Panel
+        function renderSlidesUI() {
+            const container = document.getElementById('slidesContainer');
+            container.innerHTML = '';
+            container.className = "flex-1 bg-slate-200/60 rounded-xl p-4 overflow-y-auto max-h-[650px] space-y-4 border border-slate-300/50 w-full";
+
+            generatedSlides.forEach((slide, idx) => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-lg border border-slate-300 shadow-sm overflow-hidden slide-preview flex flex-col p-5 relative group transition hover:border-indigo-400";
+                
+                let contentHTML = '';
+                if (slide.type === 'title') {
+                    contentHTML = `
+                        <div class="h-full flex flex-col justify-center items-center text-center bg-gradient-to-br from-indigo-900 to-indigo-700 text-white rounded-md p-6">
+                            <span class="text-xs uppercase tracking-widest text-indigo-300 font-semibold mb-2">${slide.subtitle}</span>
+                            <h2 class="text-xl font-bold mb-3">${slide.title}</h2>
+                            <p class="text-sm text-indigo-100 font-light">${slide.footer}</p>
+                        </div>
+                    `;
+                } else {
+                    contentHTML = `
+                        <div class="h-full flex flex-col justify-between border-l-4 border-indigo-600 pl-4 py-1">
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-base mb-3 text-indigo-900">${slide.title}</h3>
+                                <ul class="space-y-2 text-xs text-slate-600">
+                                    ${slide.bullets.map(b => `<li class="flex items-start gap-2"><span class="text-indigo-500 font-bold">•</span> <span>${b}</span></li>`).join('')}
+                                </ul>
+                            </div>
+                            ${slide.notes ? `<div class="mt-2 text-[10px] text-slate-400 italic border-t pt-1">Ghi chú: ${slide.notes}</div>` : ''}
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="absolute top-2 right-2 bg-slate-800/70 text-white text-[10px] font-mono px-2 py-0.5 rounded shadow">
+                        Slide ${idx + 1}
+                    </div>
+                    ${contentHTML}
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        // Export directly to .PPTX using pptxgenjs
+        function exportToPPTX() {
+            if (!generatedSlides.length) return;
+
+            let pptx = new PptxGenJS();
+            pptx.layout = 'LAYOUT_16x9';
+
+            generatedSlides.forEach(slide => {
+                let pSlide = pptx.addSlide();
+
+                if (slide.type === 'title') {
+                    // Title Slide Design
+                    pSlide.background = { color: '1E1B4B' }; // Dark Indigo
+                    
+                    pSlide.addText(slide.title, {
+                        x: 0.8, y: 2.0, w: '80%',
+                        fontSize: 28, bold: true, color: 'FFFFFF', align: 'left'
+                    });
+
+                    pSlide.addText(slide.subtitle, {
+                        x: 0.8, y: 1.5, w: '80%',
+                        fontSize: 16, color: 'A5B4FC', bold: true, align: 'left'
+                    });
+
+                    if (slide.footer) {
+                        pSlide.addText(slide.footer, {
+                            x: 0.8, y: 4.5, w: '80%',
+                            fontSize: 14, color: 'E0E7FF', italic: true
+                        });
+                    }
+                } else {
+                    // Content Slide Design
+                    pSlide.background = { color: 'F8FAFC' };
+
+                    // Top Bar Header
+                    pSlide.addShape(pptx.shapes.RECTANGLE, {
+                        x: 0, y: 0, w: '100%', h: 0.9, fill: { color: '3730A3' }
+                    });
+
+                    pSlide.addText(slide.title, {
+                        x: 0.6, y: 0.2, w: '90%',
+                        fontSize: 20, bold: true, color: 'FFFFFF'
+                    });
+
+                    // Bullets
+                    let formattedBullets = slide.bullets.map(b => ({
+                        text: b,
+                        options: { bullet: true, color: '334155', fontSize: 14, spaceAfter: 10 }
+                    }));
+
+                    pSlide.addText(formattedBullets, {
+                        x: 0.8, y: 1.4, w: '85%', h: 4.0,
+                        align: 'left', lineSpacing: 22
+                    });
+                }
+
+                // Add presenter notes
+                if (slide.notes) {
+                    pSlide.addNotes(slide.notes);
+                }
+            });
+
+            const fileName = (document.getElementById('lessonTitle').value || "Bai_Giang") + ".pptx";
+            pptx.writeFile({ fileName: fileName });
+            showToast("Đã tải xuống file PowerPoint thành công!");
+        }
+
+        // Copy VBA Code for PowerPoint Macro
+        function copyVBACode() {
+            if (!generatedSlides.length) return;
+
+            let vba = `Sub CreatePresentation()\n`;
+            vba += `    Dim pptApp As Object\n    Dim pptPres As Object\n    Dim slideObj As Object\n`;
+            vba += `    Set pptPres = ActivePresentation\n\n`;
+
+            generatedSlides.forEach((slide, i) => {
+                vba += `    ' Slide ${i + 1}\n`;
+                if (slide.type === 'title') {
+                    vba += `    Set slideObj = pptPres.Slides.Add(${i + 1}, 1)\n`;
+                    vba += `    slideObj.Shapes(1).TextFrame.TextRange.Text = "${escapeVBA(slide.title)}"\n`;
+                    vba += `    slideObj.Shapes(2).TextFrame.TextRange.Text = "${escapeVBA(slide.subtitle)}"\n\n`;
+                } else {
+                    vba += `    Set slideObj = pptPres.Slides.Add(${i + 1}, 2)\n`;
+                    vba += `    slideObj.Shapes(1).TextFrame.TextRange.Text = "${escapeVBA(slide.title)}"\n`;
+                    let bulletText = slide.bullets.map(b => "• " + escapeVBA(b)).join("\\n");
+                    vba += `    slideObj.Shapes(2).TextFrame.TextRange.Text = "${bulletText}"\n\n`;
+                }
+            });
+
+            vba += `    MsgBox "Hoàn tất tạo Slide bài giảng!", vbInformation\nEnd Sub`;
+
+            navigator.clipboard.writeText(vba);
+            showToast("Đã sao chép mã VBA! Mở PowerPoint bấm Alt+F11 để dán.");
+        }
+
+        function escapeVBA(str) {
+            return str.replace(/"/g, '""').replace(/\n/g, ' ');
+        }
+
+        // Helper Toast Notification
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
