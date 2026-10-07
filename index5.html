@@ -1,1 +1,1051 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trợ lý AI Hỗ trợ Viết Sáng kiến Kinh nghiệm (SKKN)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter for UI & Times New Roman for Academic Preview -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#1d4ed8',
+                            600: '#1e40af',
+                            700: '#1e3a8a',
+                        },
+                        academic: {
+                            green: '#0d9488',
+                            emerald: '#059669',
+                            slate: '#334155',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        academic: ['Tinos', 'Times New Roman', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Print specific layout simulating official document */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable-area, #printable-area * {
+                visibility: visible;
+            }
+            #printable-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            @page {
+                size: A4;
+                margin: 20mm 20mm 20mm 30mm; /* Standard SKKN Margins: Left 3cm, others 2cm */
+            }
+        }
+
+        .paper-preview {
+            background-color: white;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            padding: 30mm 20mm 20mm 30mm; /* Standard Margins */
+            min-height: 297mm;
+            line-height: 1.5;
+            font-size: 14pt;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-brand-700 via-brand-600 to-teal-700 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white/10 p-2 rounded-lg border border-white/20">
+                    <i class="fa-solid me-1 fa-graduation-cap text-2xl text-amber-300"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight sm:text-xl">Trợ Lý AI Viết Sáng Kiến Kinh Nghiệm</h1>
+                    <p class="text-xs text-brand-100 hidden sm:block">Chuẩn hóa cấu trúc & Ngôn ngữ Sư phạm Ngành Giáo dục</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <button onclick="switchTab('library')" class="px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg bg-white/10 hover:bg-white/20 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-book-bookmark text-amber-300"></i>
+                    <span class="hidden sm:inline">Thư viện</span> Cụm từ
+                </button>
+                <button onclick="resetData()" class="px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg bg-rose-500/80 hover:bg-rose-600 transition flex items-center gap-1.5 text-white">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span class="hidden md:inline">Làm mới</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="bg-white border-b border-slate-200 shadow-sm sticky top-16 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex overflow-x-auto custom-scrollbar space-x-1 sm:space-x-4">
+            <button id="tab-btn-setup" onclick="switchTab('setup')" class="tab-btn py-3 px-4 text-sm font-semibold border-b-2 border-brand-600 text-brand-600 whitespace-nowrap flex items-center gap-2">
+                <i class="fa-solid fa-sliders"></i> 1. Thiết lập Đề tài & AI Generator
+            </button>
+            <button id="tab-btn-editor" onclick="switchTab('editor')" class="tab-btn py-3 px-4 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 whitespace-nowrap flex items-center gap-2">
+                <i class="fa-solid fa-pen-to-square"></i> 2. Biên tập Nội dung SKKN
+            </button>
+            <button id="tab-btn-preview" onclick="switchTab('preview')" class="tab-btn py-3 px-4 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 whitespace-nowrap flex items-center gap-2">
+                <i class="fa-solid fa-file-lines"></i> 3. Xem trước & Xuất Văn bản
+            </button>
+            <button id="tab-btn-library" onclick="switchTab('library')" class="tab-btn py-3 px-4 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 whitespace-nowrap flex items-center gap-2">
+                <i class="fa-solid fa-lightbulb"></i> Kho Ngôn ngữ SKKN
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Body -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- TAB 1: SETUP & AI GENERATOR -->
+        <section id="tab-setup" class="tab-content space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Form Column -->
+                <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+                    <h2 class="text-base font-bold text-brand-700 uppercase tracking-wide flex items-center gap-2 border-b pb-3 border-slate-100">
+                        <i class="fa-solid fa-id-card"></i> Thông tin chung SKKN
+                    </h2>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Họ và tên Tác giả</label>
+                        <input type="text" id="teacher-name" value="Nguyễn Văn An" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Cấp học</label>
+                            <select id="grade-level" onchange="updateTopicsSuggestion()" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                                <option value="THCS">THCS</option>
+                                <option value="Tiểu học">Tiểu học</option>
+                                <option value="THPT">THPT</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Môn học</label>
+                            <select id="subject-name" onchange="updateTopicsSuggestion()" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                                <option value="Tiếng Anh">Tiếng Anh</option>
+                                <option value="Toán">Toán</option>
+                                <option value="Ngữ Văn">Ngữ Văn</option>
+                                <option value="Vật Lý">Vật Lý</option>
+                                <option value="Lịch Sử">Lịch Sử</option>
+                                <option value="Tin Học">Tin Học</option>
+                                <option value="Chủ nhiệm / KNS">Chủ nhiệm / KNS</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Đơn vị / Trường công tác</label>
+                        <input type="text" id="school-name" value="Trường THCS Lê Quý Đôn" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Quận / Huyện - Tỉnh</label>
+                            <input type="text" id="location-name" value="Quận 1, TP. Hồ Chí Minh" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Năm học</label>
+                            <input type="text" id="school-year" value="2025 - 2026" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Số lượng Học sinh khảo sát</label>
+                        <input type="number" id="sample-size" value="40" min="10" max="200" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        <span class="text-[11px] text-slate-400">Dùng để tạo bảng số liệu khảo sát đối chứng</span>
+                    </div>
+                </div>
+
+                <!-- Topic & AI Prompt Generation Column -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Topic Input Card -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+                        <h2 class="text-base font-bold text-brand-700 uppercase tracking-wide flex items-center justify-between border-b pb-3 border-slate-100">
+                            <span><i class="fa-solid fa-pen-nib"></i> Tên Đề tài Sáng kiến Kinh nghiệm</span>
+                            <span class="text-xs font-normal text-slate-500 lowercase bg-slate-100 px-2 py-0.5 rounded">Gợi ý thông minh</span>
+                        </h2>
+
+                        <div>
+                            <textarea id="topic-title" rows="2" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none" placeholder="Nhập tên đề tài SKKN của thầy/cô..."></textarea>
+                        </div>
+
+                        <!-- Suggestions Pills -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-2">Gợi ý đề tài mẫu theo Môn học & Cấp học (Click chọn nhanh):</label>
+                            <div id="topic-suggestions" class="flex flex-wrap gap-2">
+                                <!-- Dynamic suggestions rendered by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Generate Button Card -->
+                    <div class="bg-gradient-to-br from-brand-50 to-teal-50 p-6 rounded-xl border border-brand-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="space-y-1 text-center sm:text-left">
+                            <h3 class="font-bold text-slate-800 text-base">Khởi tạo Đề cương SKKN Tự động</h3>
+                            <p class="text-xs text-slate-600">Hệ thống AI sẽ tự động phân tích đề tài và xây dựng bài SKKN đầy đủ 3 phần chuẩn sư phạm.</p>
+                        </div>
+                        <button onclick="generateFullSKKN()" id="btn-generate-ai" class="w-full sm:w-auto px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm rounded-xl shadow-md transition-all transform active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap">
+                            <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i> Tạo Bài SKKN Ngay
+                        </button>
+                    </div>
+
+                    <!-- Features Highlights -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                        <div class="p-3 bg-white rounded-lg border border-slate-200 flex items-start gap-3">
+                            <i class="fa-solid fa-check-circle text-teal-600 text-lg mt-0.5"></i>
+                            <div>
+                                <strong class="block text-slate-800 font-semibold mb-0.5">Đúng khung quy định</strong>
+                                <span>Đáp ứng đúng Nghị định 13/2012/NĐ-CP & mẫu Sở GD&ĐT.</span>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-white rounded-lg border border-slate-200 flex items-start gap-3">
+                            <i class="fa-solid fa-chart-pie text-brand-600 text-lg mt-0.5"></i>
+                            <div>
+                                <strong class="block text-slate-800 font-semibold mb-0.5">Số liệu tự động</strong>
+                                <span>Tính toán % logic trước và sau khi áp dụng giải pháp.</span>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-white rounded-lg border border-slate-200 flex items-start gap-3">
+                            <i class="fa-solid fa-file-word text-blue-600 text-lg mt-0.5"></i>
+                            <div>
+                                <strong class="block text-slate-800 font-semibold mb-0.5">Xuất bản chuẩn in</strong>
+                                <span>Xem trước định dạng Times New Roman, căn lề chuẩn 3-2-2-2.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: EDITOR SECTION BY SECTION -->
+        <section id="tab-editor" class="tab-content hidden space-y-6">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 shadow-sm">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs uppercase tracking-wider font-bold text-slate-400">Đang biên tập:</span>
+                    <h3 id="current-topic-display" class="font-bold text-brand-700 text-sm sm:text-base italic">Chưa chọn đề tài</h3>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="switchTab('preview')" class="px-4 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-sm transition">
+                        <i class="fa-solid fa-eye me-1"></i> Xem trước bản in
+                    </button>
+                </div>
+            </div>
+
+            <!-- Accordion / Section Panels -->
+            <div class="space-y-4">
+                
+                <!-- SECTION I: MỞ ĐẦU -->
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div class="bg-slate-100 p-4 font-bold text-slate-800 flex justify-between items-center cursor-pointer select-none" onclick="toggleAccordion('sec-1-body')">
+                        <span class="flex items-center gap-2 text-brand-700">
+                            <i class="fa-solid fa-folder-open text-brand-600"></i> PHẦN I: MỞ ĐẦU
+                        </span>
+                        <i class="fa-solid fa-chevron-down text-slate-400 transition-transform" id="sec-1-body-icon"></i>
+                    </div>
+                    <div id="sec-1-body" class="p-6 space-y-4 border-t border-slate-200">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">1. Lý do chọn đề tài</label>
+                            <textarea id="edit-lydo" rows="5" class="w-full p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">2. Mục đích nghiên cứu</label>
+                                <textarea id="edit-mucdich" rows="3" class="w-full p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">3. Đối tượng & Phạm vi nghiên cứu</label>
+                                <textarea id="edit-doituong" rows="3" class="w-full p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">4. Phương pháp nghiên cứu</label>
+                            <textarea id="edit-phuongphap" rows="2" class="w-full p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION II: NỘI DUNG -->
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div class="bg-slate-100 p-4 font-bold text-slate-800 flex justify-between items-center cursor-pointer select-none" onclick="toggleAccordion('sec-2-body')">
+                        <span class="flex items-center gap-2 text-brand-700">
+                            <i class="fa-solid fa-folder-open text-brand-600"></i> PHẦN II: NỘI DUNG NGIÊN CỨU & GIẢI PHÁP (TRỌNG TÂM)
+                        </span>
+                        <i class="fa-solid fa-chevron-down text-slate-400 transition-transform" id="sec-2-body-icon"></i>
+                    </div>
+                    <div id="sec-2-body" class="p-6 space-y-5 border-t border-slate-200">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">1. Cơ sở lý luận</label>
+                            <textarea id="edit-cosolyluan" rows="3" class="w-full p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">2. Thực trạng trước khi áp dụng giải pháp</label>
+                            <textarea id="edit-thuctrang" rows="4" class="w-full p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+                        </div>
+
+                        <!-- Data Table Initial Survey -->
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                            <div class="flex justify-between items-center">
+                                <h4 class="text-xs font-bold text-slate-700 uppercase">Bảng số liệu khảo sát ban đầu (Trước áp dụng)</h4>
+                                <button onclick="recalculateTables()" class="text-xs text-brand-600 hover:text-brand-800 font-semibold flex items-center gap-1">
+                                    <i class="fa-solid fa-calculator"></i> Tính lại % tự động
+                                </button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs text-center border-collapse bg-white rounded-lg overflow-hidden border border-slate-300">
+                                    <thead>
+                                        <tr class="bg-slate-200 text-slate-700 font-bold">
+                                            <th class="p-2 border">Tổng số HS</th>
+                                            <th class="p-2 border">Giỏi / Tốt (SL - %)</th>
+                                            <th class="p-2 border">Khá (SL - %)</th>
+                                            <th class="p-2 border">Trung bình (SL - %)</th>
+                                            <th class="p-2 border">Yếu / Cần Cố gắng (SL - %)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="p-2 border font-bold" id="tbl1-total">40</td>
+                                            <td class="p-2 border">
+                                                <input type="number" id="tbl1-gioi" value="6" onchange="recalculateTables()" class="w-12 text-center border rounded p-1"> 
+                                                <span id="tbl1-gioi-pct" class="font-semibold text-slate-500">(15.0%)</span>
+                                            </td>
+                                            <td class="p-2 border">
+                                                <input type="number" id="tbl1-kha" value="12" onchange="recalculateTables()" class="w-12 text-center border rounded p-1">
+                                                <span id="tbl1-kha-pct" class="font-semibold text-slate-500">(30.0%)</span>
+                                            </td>
+                                            <td class="p-2 border">
+                                                <input type="number" id="tbl1-tb" value="16" onchange="recalculateTables()" class="w-12 text-center border rounded p-1">
+                                                <span id="tbl1-tb-pct" class="font-semibold text-slate-500">(40.0%)</span>
+                                            </td>
+                                            <td class="p-2 border">
+                                                <input type="number" id="tbl1-yeu" value="6" onchange="recalculateTables()" class="w-12 text-center border rounded p-1">
+                                                <span id="tbl1-yeu-pct" class="font-semibold text-slate-500">(15.0%)</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Measures Section -->
+                        <div class="space-y-4 pt-2">
+                            <h4 class="text-xs font-bold text-brand-700 uppercase border-b pb-1">3. Các biện pháp tổ chức thực hiện (Nội dung chính)</h4>
+                            
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Biện pháp 1: Đổi mới nội dung & Phương pháp tổ chức</label>
+                                <textarea id="edit-bp1" rows="4" class="w-full p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Biện pháp 2: Ứng dụng Công nghệ Thông tin / Thiết bị dạy học trực quan</label>
+                                <textarea id="edit-bp2" rows="4" class="w-full p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Biện pháp 3: Tăng cường kiểm tra, hỗ trợ phân hóa đối tượng học sinh</label>
+                                <textarea id="edit-bp3" rows="4" class="w-full p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Effect & Comparative Data -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">4. Hiệu quả đạt được sau khi áp dụng sáng kiến</label>
+                            <textarea id="edit-hieuqua" rows="3" class="w-full p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+                        </div>
+
+                        <!-- Data Table Final Survey -->
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                            <h4 class="text-xs font-bold text-slate-700 uppercase">Bảng số liệu kiểm chứng sau khi áp dụng giải pháp</h4>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs text-center border-collapse bg-white rounded-lg overflow-hidden border border-slate-300">
+                                    <thead>
+                                        <tr class="bg-emerald-100 text-emerald-800 font-bold">
+                                            <th class="p-2 border">Tổng số HS</th>
+                                            <th class="p-2 border">Giỏi / Tốt (SL - %)</th>
+                                            <th class="p-2 border">Khá (SL - %)</th>
+                                            <th class="p-2 border">Trung bình (SL - %)</th>
+                                            <th class="p-2 border">Yếu / Cần Cố gắng (SL - %)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="p-2 border font-bold" id="tbl2-total">40</td>
+                                            <td class="p-2 border">
+                                                <input type="number" id="tbl2-gioi" value="18" onchange="recalculateTables()" class="w-12 text-center border rounded p-1"> 
+                                                <span id="tbl2-gioi-pct" class="font-semibold text-emerald-600">(45.0%)</span>
+                                            </td>
+                                            <td class="p-2 border">
+                                                <input type="number" id="tbl2-kha" value="16" onchange="recalculateTables()" class="w-12 text-center border rounded p-1">
+                                                <span id="tbl2-kha-pct" class="font-semibold text-emerald-600">(40.0%)</span>
+                                            </td>
+                                            <td class="p-2 border">
+                                                <input type="number" id="tbl2-tb" value="6" onchange="recalculateTables()" class="w-12 text-center border rounded p-1">
+                                                <span id="tbl2-tb-pct" class="font-semibold text-emerald-600">(15.0%)</span>
+                                            </td>
+                                            <td class="p-2 border">
+                                                <input type="number" id="tbl2-yeu" value="0" onchange="recalculateTables()" class="w-12 text-center border rounded p-1">
+                                                <span id="tbl2-yeu-pct" class="font-semibold text-emerald-600">(0.0%)</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- SECTION III: KẾT LUẬN & KIẾN NGHỊ -->
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div class="bg-slate-100 p-4 font-bold text-slate-800 flex justify-between items-center cursor-pointer select-none" onclick="toggleAccordion('sec-3-body')">
+                        <span class="flex items-center gap-2 text-brand-700">
+                            <i class="fa-solid fa-folder-open text-brand-600"></i> PHẦN III: KẾT LUẬN & KIẾN NGHỊ
+                        </span>
+                        <i class="fa-solid fa-chevron-down text-slate-400 transition-transform" id="sec-3-body-icon"></i>
+                    </div>
+                    <div id="sec-3-body" class="p-6 space-y-4 border-t border-slate-200">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">1. Bài học kinh nghiệm rút ra</label>
+                            <textarea id="edit-baihoc" rows="3" class="w-full p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">2. Kiến nghị với Ban Giám Hiệu nhà trường</label>
+                                <textarea id="edit-kn-truong" rows="3" class="w-full p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">3. Kiến nghị với Phòng/Sở GD&ĐT</label>
+                                <textarea id="edit-kn-so" rows="3" class="w-full p-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- TAB 3: PREVIEW & EXPORT -->
+        <section id="tab-preview" class="tab-content hidden space-y-6">
+            <!-- Top Controls Toolbar -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3 no-print">
+                <div class="flex items-center space-x-2 text-xs font-semibold text-slate-600">
+                    <span class="bg-slate-100 px-2.5 py-1 rounded-md border"><i class="fa-solid fa-file-pdf text-rose-500 me-1"></i> Trang A4</span>
+                    <span class="bg-slate-100 px-2.5 py-1 rounded-md border"><i class="fa-solid fa-font text-blue-500 me-1"></i> Times New Roman</span>
+                    <span class="bg-slate-100 px-2.5 py-1 rounded-md border"><i class="fa-solid fa-arrows-up-down text-emerald-500 me-1"></i> Dãn dòng 1.5</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="copyFullDocumentText()" class="px-3 py-2 text-xs font-semibold bg-slate-700 hover:bg-slate-800 text-white rounded-lg transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-copy"></i> Sao chép tất cả
+                    </button>
+                    <button onclick="downloadHtmlFile()" class="px-3 py-2 text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-download"></i> Tải file HTML
+                    </button>
+                    <button onclick="window.print()" class="px-4 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-print"></i> In / Xuất PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Paper Preview Container (Designed for standard A4 document display) -->
+            <div class="flex justify-center overflow-x-auto p-2 sm:p-4 bg-slate-200 rounded-xl">
+                <div id="printable-area" class="paper-preview font-academic text-slate-900 w-full max-w-[210mm] shadow-2xl">
+                    
+                    <!-- Cover/Header Meta Block -->
+                    <div class="text-center space-y-2 mb-8 border-b-2 border-slate-900 pb-6">
+                        <p class="uppercase font-bold text-sm tracking-widest text-slate-700" id="pv-school-header">TRƯỜNG THCS LÊ QUÝ ĐÔN</p>
+                        <h1 class="text-2xl font-bold uppercase text-slate-900 mt-4 leading-snug px-4" id="pv-title">TÊN ĐỀ TÀI SÁNG KIẾN KINH NGHIỆM</h1>
+                        <div class="inline-block border-t border-b border-slate-400 py-1 px-6 my-2 text-sm italic">
+                            Sáng kiến kinh nghiệm thuộc lĩnh vực môn: <span id="pv-subject" class="font-bold">Tiếng Anh</span>
+                        </div>
+                        <div class="text-sm space-y-1 text-slate-800 pt-2">
+                            <p>Tác giả: <strong id="pv-author">Nguyễn Văn An</strong></p>
+                            <p>Đơn vị: <span id="pv-unit">Trường THCS Lê Quý Đôn</span> - <span id="pv-location">Quận 1, TP. Hồ Chí Minh</span></p>
+                            <p>Năm học: <span id="pv-year">2025 - 2026</span></p>
+                        </div>
+                    </div>
+
+                    <!-- DOCUMENT BODY -->
+                    <div class="space-y-6 text-justify">
+                        
+                        <!-- PHẦN I -->
+                        <div>
+                            <h2 class="font-bold uppercase text-base text-slate-900 mb-2">PHẦN I: MỞ ĐẦU</h2>
+                            
+                            <h3 class="font-bold text-base mt-3 mb-1">1. Lý do chọn đề tài</h3>
+                            <p id="pv-lydo" class="text-indent-8 whitespace-pre-line">...</p>
+
+                            <h3 class="font-bold text-base mt-3 mb-1">2. Mục đích nghiên cứu</h3>
+                            <p id="pv-mucdich" class="whitespace-pre-line">...</p>
+
+                            <h3 class="font-bold text-base mt-3 mb-1">3. Đối tượng và Phạm vi nghiên cứu</h3>
+                            <p id="pv-doituong" class="whitespace-pre-line">...</p>
+
+                            <h3 class="font-bold text-base mt-3 mb-1">4. Phương pháp nghiên cứu</h3>
+                            <p id="pv-phuongphap" class="whitespace-pre-line">...</p>
+                        </div>
+
+                        <!-- PHẦN II -->
+                        <div>
+                            <h2 class="font-bold uppercase text-base text-slate-900 mb-2">PHẦN II: NỘI DUNG NGIÊN CỨU VÀ GIẢI PHÁP</h2>
+
+                            <h3 class="font-bold text-base mt-3 mb-1">1. Cơ sở lý luận</h3>
+                            <p id="pv-cosolyluan" class="whitespace-pre-line">...</p>
+
+                            <h3 class="font-bold text-base mt-3 mb-1">2. Thực trạng trước khi áp dụng giải pháp</h3>
+                            <p id="pv-thuctrang" class="whitespace-pre-line mb-3">...</p>
+                            
+                            <!-- Table 1 Preview -->
+                            <div class="my-4">
+                                <p class="font-bold text-center text-sm italic mb-2">Bảng 1: Kết quả khảo sát thực trạng ban đầu (Trước khi áp dụng sáng kiến)</p>
+                                <table class="w-full border-collapse border border-slate-900 text-center text-xs">
+                                    <thead>
+                                        <tr class="bg-slate-100 font-bold">
+                                            <th class="border border-slate-900 p-2">Tổng số HS</th>
+                                            <th class="border border-slate-900 p-2">Giỏi / Tốt</th>
+                                            <th class="border border-slate-900 p-2">Khá</th>
+                                            <th class="border border-slate-900 p-2">Trung bình</th>
+                                            <th class="border border-slate-900 p-2">Yếu / Cần cố gắng</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pv-table1-body">
+                                        <!-- Rendered via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <h3 class="font-bold text-base mt-4 mb-2">3. Các biện pháp tổ chức thực hiện</h3>
+                            
+                            <div class="space-y-3">
+                                <div>
+                                    <h4 class="font-bold italic text-base">3.1. Biện pháp 1: Đổi mới nội dung & Phương pháp tổ chức</h4>
+                                    <p id="pv-bp1" class="whitespace-pre-line">...</p>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold italic text-base">3.2. Biện pháp 2: Ứng dụng Công nghệ Thông tin & Thiết bị dạy học</h4>
+                                    <p id="pv-bp2" class="whitespace-pre-line">...</p>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold italic text-base">3.3. Biện pháp 3: Kiểm tra, đánh giá & Phân hóa đối tượng học sinh</h4>
+                                    <p id="pv-bp3" class="whitespace-pre-line">...</p>
+                                </div>
+                            </div>
+
+                            <h3 class="font-bold text-base mt-4 mb-1">4. Hiệu quả đạt được sau khi áp dụng sáng kiến</h3>
+                            <p id="pv-hieuqua" class="whitespace-pre-line mb-3">...</p>
+
+                            <!-- Table 2 Preview -->
+                            <div class="my-4">
+                                <p class="font-bold text-center text-sm italic mb-2">Bảng 2: Kết quả kiểm chứng sau khi áp dụng sáng kiến kinh nghiệm</p>
+                                <table class="w-full border-collapse border border-slate-900 text-center text-xs">
+                                    <thead>
+                                        <tr class="bg-slate-100 font-bold">
+                                            <th class="border border-slate-900 p-2">Tổng số HS</th>
+                                            <th class="border border-slate-900 p-2">Giỏi / Tốt</th>
+                                            <th class="border border-slate-900 p-2">Khá</th>
+                                            <th class="border border-slate-900 p-2">Trung bình</th>
+                                            <th class="border border-slate-900 p-2">Yếu / Cần cố gắng</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pv-table2-body">
+                                        <!-- Rendered via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- PHẦN III -->
+                        <div>
+                            <h2 class="font-bold uppercase text-base text-slate-900 mb-2">PHẦN III: KẾT LUẬN VÀ KIẾN NGHỊ</h2>
+
+                            <h3 class="font-bold text-base mt-3 mb-1">1. Bài học kinh nghiệm</h3>
+                            <p id="pv-baihoc" class="whitespace-pre-line">...</p>
+
+                            <h3 class="font-bold text-base mt-3 mb-1">2. Kiến nghị</h3>
+                            <p class="font-semibold italic text-sm text-slate-800">a. Đối với Nhà trường / Ban Giám Hiệu:</p>
+                            <p id="pv-kn-truong" class="whitespace-pre-line mb-2">...</p>
+                            
+                            <p class="font-semibold italic text-sm text-slate-800">b. Đối với Phòng / Sở Giáo dục & Đào tạo:</p>
+                            <p id="pv-kn-so" class="whitespace-pre-line">...</p>
+                        </div>
+
+                    </div>
+
+                    <!-- Signature Footer Block -->
+                    <div class="mt-12 pt-6 flex justify-between items-start text-center text-sm">
+                        <div class="w-1/2">
+                            <p class="font-bold uppercase">XÁC NHẬN CỦA HỘI ĐỒNG SKKN</p>
+                            <p class="italic text-xs text-slate-500">(Ký, đóng dấu)</p>
+                        </div>
+                        <div class="w-1/2">
+                            <p class="italic text-slate-700" id="pv-sign-date">..., ngày ... tháng ... năm ...</p>
+                            <p class="font-bold uppercase mt-1">NNgười viết Sáng kiến</p>
+                            <div class="h-20"></div>
+                            <p class="font-bold text-slate-900" id="pv-author-sign">Nguyễn Văn An</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: PEDAGOGICAL PHRASE LIBRARY -->
+        <section id="tab-library" class="tab-content hidden space-y-6">
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <h2 class="text-base font-bold text-brand-700 uppercase tracking-wide border-b pb-3 border-slate-100 flex items-center gap-2">
+                    <i class="fa-solid fa-book-open-reader text-teal-600"></i> Kho Cụm Từ & Văn Phong Sư Phạm Chuẩn SKKN
+                </h2>
+                <p class="text-xs text-slate-600">Thầy/cô có thể nhấn nút sao chép để chèn trực tiếp các cụm từ chuẩn văn phong vào bài viết của mình.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                    
+                    <!-- Card 1 -->
+                    <div class="border border-slate-200 rounded-lg p-4 bg-slate-50 space-y-3">
+                        <h3 class="font-bold text-sm text-brand-700 flex items-center gap-2">
+                            <i class="fa-solid fa-pen text-amber-500"></i> Viết Lý do chọn đề tài
+                        </h3>
+                        <ul class="space-y-2 text-xs text-slate-700">
+                            <li class="p-2 bg-white rounded border flex justify-between items-center">
+                                <span>"Xuất phát từ yêu cầu đổi mới căn bản, toàn diện giáo dục và đào tạo theo Nghị quyết..."</span>
+                                <button onclick="copyText('Xuất phát từ yêu cầu đổi mới căn bản, toàn diện giáo dục và đào tạo theo Nghị quyết...')" class="text-brand-600 hover:text-brand-800 text-xs font-bold">Coppy</button>
+                            </li>
+                            <li class="p-2 bg-white rounded border flex justify-between items-center">
+                                <span>"Nhằm đáp ứng yêu cầu nâng cao chất lượng dạy học theo Chương trình GDPT 2018..."</span>
+                                <button onclick="copyText('Nhằm đáp ứng yêu cầu nâng cao chất lượng dạy học theo Chương trình GDPT 2018...')" class="text-brand-600 hover:text-brand-800 text-xs font-bold">Copy</button>
+                            </li>
+                            <li class="p-2 bg-white rounded border flex justify-between items-center">
+                                <span>"Trong thực tiễn giảng dạy nhiều năm qua, tôi nhận thấy đa số học sinh còn gặp khó khăn trong..."</span>
+                                <button onclick="copyText('Trong thực tiễn giảng dạy nhiều năm qua, tôi nhận thấy đa số học sinh còn gặp khó khăn trong...')" class="text-brand-600 hover:text-brand-800 text-xs font-bold">Copy</button>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="border border-slate-200 rounded-lg p-4 bg-slate-50 space-y-3">
+                        <h3 class="font-bold text-sm text-brand-700 flex items-center gap-2">
+                            <i class="fa-solid fa-comments text-emerald-500"></i> Cụm từ nhận xét thực trạng
+                        </h3>
+                        <ul class="space-y-2 text-xs text-slate-700">
+                            <li class="p-2 bg-white rounded border flex justify-between items-center">
+                                <span>"Về phía học sinh: Còn thụ động trong việc tiếp thu kiến thức, chưa phát huy tính tự học..."</span>
+                                <button onclick="copyText('Về phía học sinh: Còn thụ động trong việc tiếp thu kiến thức, chưa phát huy tính tự học...')" class="text-brand-600 hover:text-brand-800 text-xs font-bold">Copy</button>
+                            </li>
+                            <li class="p-2 bg-white rounded border flex justify-between items-center">
+                                <span>"Việc kết hợp các phương pháp dạy học trực quan và ứng dụng công nghệ đôi lúc còn hình thức..."</span>
+                                <button onclick="copyText('Việc kết hợp các phương pháp dạy học trực quan và ứng dụng công nghệ đôi lúc còn hình thức...')" class="text-brand-600 hover:text-brand-800 text-xs font-bold">Copy</button>
+                            </li>
+                            <li class="p-2 bg-white rounded border flex justify-between items-center">
+                                <span>"Khảo sát đầu năm cho thấy tỉ lệ học sinh đạt mức độ Khá - Giỏi còn hạn chế, cụ thể..."</span>
+                                <button onclick="copyText('Khảo sát đầu năm cho thấy tỉ lệ học sinh đạt mức độ Khá - Giỏi còn hạn chế, cụ thể...')" class="text-brand-600 hover:text-brand-800 text-xs font-bold">Copy</button>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="border border-slate-200 rounded-lg p-4 bg-slate-50 space-y-3">
+                        <h3 class="font-bold text-sm text-brand-700 flex items-center gap-2">
+                            <i class="fa-solid fa-gears text-indigo-500"></i> Cụm từ mô tả biện pháp
+                        </h3>
+                        <ul class="space-y-2 text-xs text-slate-700">
+                            <li class="p-2 bg-white rounded border flex justify-between items-center">
+                                <span>"Xây dựng hệ thống bài tập phân hóa theo các mức độ nhận thức từ Nhận biết đến Vận dụng cao..."</span>
+                                <button onclick="copyText('Xây dựng hệ thống bài tập phân hóa theo các mức độ nhận thức từ Nhận biết đến Vận dụng cao...')" class="text-brand-600 hover:text-brand-800 text-xs font-bold">Copy</button>
+                            </li>
+                            <li class="p-2 bg-white rounded border flex justify-between items-center">
+                                <span>"Tích hợp các công cụ chuyển đổi số (Quizizz, Liveworksheets, Sơ đồ tư duy) vào hoạt động..."</span>
+                                <button onclick="copyText('Tích hợp các công cụ chuyển đổi số (Quizizz, Liveworksheets, Sơ đồ tư duy) vào hoạt động...')" class="text-brand-600 hover:text-brand-800 text-xs font-bold">Copy</button>
+                            </li>
+                            <li class="p-2 bg-white rounded border flex justify-between items-center">
+                                <span>"Tổ chức dạy học theo nhóm nhỏ nhằm nâng cao tinh thần hợp tác và kỹ năng giao tiếp..."</span>
+                                <button onclick="copyText('Tổ chức dạy học theo nhóm nhỏ nhằm nâng cao tinh thần hợp tác và kỹ năng giao tiếp...')" class="text-brand-600 hover:text-brand-800 text-xs font-bold">Copy</button>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Card 4 -->
+                    <div class="border border-slate-200 rounded-lg p-4 bg-slate-50 space-y-3">
+                        <h3 class="font-bold text-sm text-brand-700 flex items-center gap-2">
+                            <i class="fa-solid fa-award text-rose-500"></i> Viết Kết luận & Bài học
+                        </h3>
+                        <ul class="space-y-2 text-xs text-slate-700">
+                            <li class="p-2 bg-white rounded border flex justify-between items-center">
+                                <span>"Sáng kiến kinh nghiệm không chỉ nâng cao chất lượng học tập của môn học mà còn bồi dưỡng..."</span>
+                                <button onclick="copyText('Sáng kiến kinh nghiệm không chỉ nâng cao chất lượng học tập của môn học mà còn bồi dưỡng...')" class="text-brand-600 hover:text-brand-800 text-xs font-bold">Copy</button>
+                            </li>
+                            <li class="p-2 bg-white rounded border flex justify-between items-center">
+                                <span>"Giáo viên cần không ngừng tự học, tự bồi dưỡng chuyên môn, kiên nhẫn đồng hành cùng học sinh..."</span>
+                                <button onclick="copyText('Giáo viên cần không ngừng tự học, tự bồi dưỡng chuyên môn, kiên nhẫn đồng hành cùng học sinh...')" class="text-brand-600 hover:text-brand-800 text-xs font-bold">Copy</button>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs px-4 py-3 rounded-lg shadow-xl flex items-center gap-2 opacity-0 transition-opacity duration-300 pointer-events-none z-50">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-message">Đã sao chép vào bộ nhớ tạm!</span>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Sample Topic Recommendations Database
+        const sampleTopics = {
+            'Tiếng Anh': [
+                "Một số biện pháp nâng cao hứng thú học từ vựng Tiếng Anh cho học sinh qua các trò chơi tương tác trực tuyến",
+                "Phát triển kỹ năng nói Tiếng Anh thông qua phương pháp dạy học theo dự án (Project-based Learning)",
+                "Ứng dụng sơ đồ tư duy (Mind map) trong việc ghi nhớ ngữ pháp Tiếng Anh hiệu quả"
+            ],
+            'Toán': [
+                "Một số biện pháp rèn luyện kỹ năng giải bài tập có lời văn cho học sinh",
+                "Sử dụng phương pháp trực quan sinh động nhằm phát triển tư duy hình học không gian",
+                "Phân loại và hướng dẫn giải các dạng toán thực tế ứng dụng trong đời sống"
+            ],
+            'Ngữ Văn': [
+                "Phương pháp sử dụng sơ đồ tư duy nâng cao năng lực đọc hiểu văn bản tự sự",
+                "Tổ chức hoạt động trải nghiệm sáng tạo trong dạy học môn Ngữ Văn",
+                "Một số biện pháp rèn kỹ năng tạo lập văn bản nghị luận xã hội cho học sinh"
+            ],
+            'Vật Lý': [
+                "Tích hợp thí nghiệm thực hành ảo trong giảng dạy Vật lý nhằm phát triển năng lực tìm hiểu tự nhiên",
+                "Sử dụng bài tập tình huống thực tiễn nâng cao hứng thú học tập môn Vật lý"
+            ],
+            'Tin Học': [
+                "Ứng dụng phương pháp học qua dự án (PBL) trong giảng dạy lập trình cơ bản",
+                "Hướng dẫn học sinh khai thác an toàn và hiệu quả các tài nguyên học tập trên Internet"
+            ],
+            'Chủ nhiệm / KNS': [
+                "Biện pháp xây dựng lớp học hạnh phúc và tăng cường kỹ năng sống cho học sinh",
+                "Phối hợp hiệu quả giữa Giáo viên chủ nhiệm với Gia đình trong việc giáo dục học sinh chưa ngoan"
+            ]
+        };
+
+        // Initialize App on Load
+        window.onload = function() {
+            updateTopicsSuggestion();
+            recalculateTables();
+            updatePreview();
+        };
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-brand-600', 'text-brand-600');
+                btn.classList.add('border-transparent', 'text-slate-500');
+            });
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('border-transparent', 'text-slate-500');
+                activeBtn.classList.add('border-brand-600', 'text-brand-600');
+            }
+
+            if (tabId === 'preview') {
+                updatePreview();
+            }
+        }
+
+        // Accordion Toggle
+        function toggleAccordion(id) {
+            const body = document.getElementById(id);
+            const icon = document.getElementById(`${id}-icon`);
+            if (body.classList.contains('hidden')) {
+                body.classList.remove('hidden');
+                icon.classList.remove('rotate-180');
+            } else {
+                body.classList.add('hidden');
+                icon.classList.add('rotate-180');
+            }
+        }
+
+        // Topic Suggestions Generator
+        function updateTopicsSuggestion() {
+            const subject = document.getElementById('subject-name').value;
+            const container = document.getElementById('topic-suggestions');
+            container.innerHTML = '';
+
+            const list = sampleTopics[subject] || sampleTopics['Tiếng Anh'];
+            list.forEach((topic, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "text-xs bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 transition text-left font-medium";
+                btn.innerHTML = `<i class="fa-solid fa-lightbulb text-amber-500 me-1"></i> ${topic}`;
+                btn.onclick = () => {
+                    document.getElementById('topic-title').value = topic;
+                    showToast("Đã chọn đề tài mẫu!");
+                };
+                container.appendChild(btn);
+            });
+
+            if(!document.getElementById('topic-title').value) {
+                document.getElementById('topic-title').value = list[0];
+            }
+        }
+
+        // AI SKKN Generator Function
+        function generateFullSKKN() {
+            const topic = document.getElementById('topic-title').value.trim() || "Một số biện pháp nâng cao chất lượng dạy học";
+            const subject = document.getElementById('subject-name').value;
+            const grade = document.getElementById('grade-level').value;
+            const school = document.getElementById('school-name').value;
+
+            // Set Title display
+            document.getElementById('current-topic-display').innerText = topic;
+
+            // Fill Section 1
+            document.getElementById('edit-lydo').value = `Trong bối cảnh đổi mới giáo dục hiện nay, việc nâng cao chất lượng dạy học môn ${subject} cấp ${grade} là nhiệm vụ trọng tâm hàng đầu. Xuất phát từ thực tiễn giảng dạy tại ${school}, học sinh còn gặp nhiều khó khăn trong việc tiếp thu kiến thức chủ động. Nhằm đáp ứng yêu cầu của Chương trình GDPT mới, tôi nghiên cứu và triển khai đề tài: "${topic}" với mong muốn tìm ra giải pháp tối ưu giúp nâng cao hiệu quả môn học.`;
+            
+            document.getElementById('edit-mucdich').value = `Đề xuất các biện pháp sư phạm thiết thực, khả thi nhằm khắc phục khó khăn của học sinh, nâng cao chất lượng và hứng thú học tập môn ${subject} tại ${school}.`;
+            
+            document.getElementById('edit-doituong').value = `Đối tượng nghiên cứu: Phương pháp và kỹ thuật dạy học môn ${subject}.\nPhạm vi áp dụng: Học sinh khối lớp cấp ${grade} tại ${school} trong năm học hiện tại.`;
+            
+            document.getElementById('edit-phuongphap').value = `1. Phương pháp nghiên cứu lý luận.\n2. Phương pháp điều tra, khảo sát thực tế.\n3. Phương pháp thực nghiệm sư phạm & so sánh đối chứng số liệu.`;
+
+            // Fill Section 2
+            document.getElementById('edit-cosolyluan').value = `Giáo dục hiện đại chú trọng phát triển toàn diện năng lực và phẩm chất người học. Môn ${subject} đóng vai trò then chốt trong việc trang bị kiến thức và kỹ năng sống thiết yếu. Việc ứng dụng linh hoạt các biện pháp dạy học tích cực là phù hợp với định hướng đổi mới sư phạm.`;
+            
+            document.getElementById('edit-thuctrang').value = `Trước khi áp dụng đề tài, đa số học sinh còn thụ động, chưa chủ động làm chủ kiến thức. Tỉ lệ học sinh khá, giỏi môn ${subject} còn hạn chế. Việc sử dụng thiết bị dạy học và công nghệ đôi khi còn thiếu tính tương tác cao.`;
+            
+            document.getElementById('edit-bp1').value = `Biện pháp 1: Đổi mới thiết kế kế hoạch bài dạy và phương pháp tổ chức.\n- Thiết kế chuỗi hoạt động học tập đa dạng, tập trung vào học sinh.\n- Xây dựng không khí học tập cởi mở, thân thiện, khuyến khích học sinh trao đổi thảo luận.`;
+            
+            document.getElementById('edit-bp2').value = `Biện pháp 2: Tăng cường ứng dụng Công nghệ Thông tin & Thiết bị dạy học trực quan.\n- Sử dụng phần mềm trình chiếu sinh động, sơ đồ tư duy số hóa.\n- Tích hợp các ứng dụng kiểm tra đánh giá tương tác (Quizizz, Liveworksheets) giúp tăng sự hào hứng.`;
+            
+            document.getElementById('edit-bp3').value = `Biện pháp 3: Phân hóa đối tượng học sinh và hỗ trợ kịp thời.\n- Xây dựng bài tập theo các mức độ nhận thức (Nhận biết, Thông hiểu, Vận dụng).\n- Thành lập các nhóm đôi bạn cùng tiến, kịp thời bồi dưỡng học sinh khá giỏi và phụ đạo học sinh còn chậm.`;
+
+            document.getElementById('edit-hieuqua').value = `Sau thời gian áp dụng các giải pháp trên, học sinh đã có sự chuyển biến rõ rệt về nhận thức và kỹ năng. Không khí lớp học trở nên sôi nổi, tỉ lệ học sinh tự giác tham gia bài học tăng cao rõ rệt. Kết quả kiểm tra được cải thiện đáng kể qua bảng số liệu so sánh dưới đây.`;
+
+            // Fill Section 3
+            document.getElementById('edit-baihoc').value = `1. Giáo viên phải luôn chủ động nâng cao trình độ chuyên môn, tâm huyết và kiên nhẫn.\n2. Cần nắm vững đặc điểm tâm sinh lý của từng học sinh để chọn giải pháp phù hợp.\n3. Việc áp dụng CNTT phải linh hoạt, hướng vào bản chất kiến thức chứ không hình thức.`;
+            
+            document.getElementById('edit-kn-truong').value = `Tăng cường trang bị thêm các thiết bị dạy học hiện đại, máy chiếu tại các phòng học; tổ chức thêm các buổi chuyên đề sinh hoạt chuyên môn cấp trường.`;
+            
+            document.getElementById('edit-kn-so').value = `Tổ chức các lớp tập huấn chuyên sâu về đổi mới phương pháp dạy học môn ${subject} và phổ biến các Sáng kiến kinh nghiệm đạt giải cao để giáo viên giao lưu học hỏi.`;
+
+            // Auto calculate tables
+            recalculateTables();
+
+            // Toast and Switch tab
+            showToast("Đã khởi tạo xong bài SKKN!");
+            switchTab('editor');
+        }
+
+        // Table Percentage Calculator
+        function recalculateTables() {
+            const sampleSize = parseInt(document.getElementById('sample-size').value) || 40;
+
+            // Table 1
+            document.getElementById('tbl1-total').innerText = sampleSize;
+            const g1 = parseInt(document.getElementById('tbl1-gioi').value) || 0;
+            const k1 = parseInt(document.getElementById('tbl1-kha').value) || 0;
+            const tb1 = parseInt(document.getElementById('tbl1-tb').value) || 0;
+            const y1 = parseInt(document.getElementById('tbl1-yeu').value) || 0;
+
+            document.getElementById('tbl1-gioi-pct').innerText = `(${((g1/sampleSize)*100).toFixed(1)}%)`;
+            document.getElementById('tbl1-kha-pct').innerText = `(${((k1/sampleSize)*100).toFixed(1)}%)`;
+            document.getElementById('tbl1-tb-pct').innerText = `(${((tb1/sampleSize)*100).toFixed(1)}%)`;
+            document.getElementById('tbl1-yeu-pct').innerText = `(${((y1/sampleSize)*100).toFixed(1)}%)`;
+
+            // Table 2
+            document.getElementById('tbl2-total').innerText = sampleSize;
+            const g2 = parseInt(document.getElementById('tbl2-gioi').value) || 0;
+            const k2 = parseInt(document.getElementById('tbl2-kha').value) || 0;
+            const tb2 = parseInt(document.getElementById('tbl2-tb').value) || 0;
+            const y2 = parseInt(document.getElementById('tbl2-yeu').value) || 0;
+
+            document.getElementById('tbl2-gioi-pct').innerText = `(${((g2/sampleSize)*100).toFixed(1)}%)`;
+            document.getElementById('tbl2-kha-pct').innerText = `(${((k2/sampleSize)*100).toFixed(1)}%)`;
+            document.getElementById('tbl2-tb-pct').innerText = `(${((tb2/sampleSize)*100).toFixed(1)}%)`;
+            document.getElementById('tbl2-yeu-pct').innerText = `(${((y2/sampleSize)*100).toFixed(1)}%)`;
+        }
+
+        // Update Paper Preview Component
+        function updatePreview() {
+            const getValue = (id) => document.getElementById(id) ? document.getElementById(id).value : '';
+
+            // Meta
+            document.getElementById('pv-school-header').innerText = getValue('school-name').toUpperCase();
+            document.getElementById('pv-title').innerText = getValue('topic-title').toUpperCase() || "TÊN ĐỀ TÀI SÁNG KIẾN KINH NGHIỆM";
+            document.getElementById('pv-subject').innerText = getValue('subject-name');
+            document.getElementById('pv-author').innerText = getValue('teacher-name');
+            document.getElementById('pv-author-sign').innerText = getValue('teacher-name');
+            document.getElementById('pv-unit').innerText = getValue('school-name');
+            document.getElementById('pv-location').innerText = getValue('location-name');
+            document.getElementById('pv-year').innerText = getValue('school-year');
+            
+            const today = new Date();
+            document.getElementById('pv-sign-date').innerText = `..., ngày ${today.getDate()} tháng ${today.getMonth()+1} năm ${today.getFullYear()}`;
+
+            // Section 1
+            document.getElementById('pv-lydo').innerText = getValue('edit-lydo');
+            document.getElementById('pv-mucdich').innerText = getValue('edit-mucdich');
+            document.getElementById('pv-doituong').innerText = getValue('edit-doituong');
+            document.getElementById('pv-phuongphap').innerText = getValue('edit-phuongphap');
+
+            // Section 2
+            document.getElementById('pv-cosolyluan').innerText = getValue('edit-cosolyluan');
+            document.getElementById('pv-thuctrang').innerText = getValue('edit-thuctrang');
+            document.getElementById('pv-bp1').innerText = getValue('edit-bp1');
+            document.getElementById('pv-bp2').innerText = getValue('edit-bp2');
+            document.getElementById('pv-bp3').innerText = getValue('edit-bp3');
+            document.getElementById('pv-hieuqua').innerText = getValue('edit-hieuqua');
+
+            // Section 3
+            document.getElementById('pv-baihoc').innerText = getValue('edit-baihoc');
+            document.getElementById('pv-kn-truong').innerText = getValue('edit-kn-truong');
+            document.getElementById('pv-kn-so').innerText = getValue('edit-kn-so');
+
+            // Render Preview Tables
+            renderPreviewTables();
+        }
+
+        function renderPreviewTables() {
+            const sampleSize = parseInt(document.getElementById('sample-size').value) || 40;
+
+            // Table 1
+            const g1 = parseInt(document.getElementById('tbl1-gioi').value) || 0;
+            const k1 = parseInt(document.getElementById('tbl1-kha').value) || 0;
+            const tb1 = parseInt(document.getElementById('tbl1-tb').value) || 0;
+            const y1 = parseInt(document.getElementById('tbl1-yeu').value) || 0;
+
+            document.getElementById('pv-table1-body').innerHTML = `
+                <tr>
+                    <td class="border border-slate-900 p-2 font-bold">${sampleSize}</td>
+                    <td class="border border-slate-900 p-2">${g1} (${((g1/sampleSize)*100).toFixed(1)}%)</td>
+                    <td class="border border-slate-900 p-2">${k1} (${((k1/sampleSize)*100).toFixed(1)}%)</td>
+                    <td class="border border-slate-900 p-2">${tb1} (${((tb1/sampleSize)*100).toFixed(1)}%)</td>
+                    <td class="border border-slate-900 p-2">${y1} (${((y1/sampleSize)*100).toFixed(1)}%)</td>
+                </tr>
+            `;
+
+            // Table 2
+            const g2 = parseInt(document.getElementById('tbl2-gioi').value) || 0;
+            const k2 = parseInt(document.getElementById('tbl2-kha').value) || 0;
+            const tb2 = parseInt(document.getElementById('tbl2-tb').value) || 0;
+            const y2 = parseInt(document.getElementById('tbl2-yeu').value) || 0;
+
+            document.getElementById('pv-table2-body').innerHTML = `
+                <tr>
+                    <td class="border border-slate-900 p-2 font-bold">${sampleSize}</td>
+                    <td class="border border-slate-900 p-2 font-semibold">${g2} (${((g2/sampleSize)*100).toFixed(1)}%)</td>
+                    <td class="border border-slate-900 p-2 font-semibold">${k2} (${((k2/sampleSize)*100).toFixed(1)}%)</td>
+                    <td class="border border-slate-900 p-2">${tb2} (${((tb2/sampleSize)*100).toFixed(1)}%)</td>
+                    <td class="border border-slate-900 p-2">${y2} (${((y2/sampleSize)*100).toFixed(1)}%)</td>
+                </tr>
+            `;
+        }
+
+        // Copy Helper
+        function copyText(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast("Đã sao chép cụm từ!");
+        }
+
+        function copyFullDocumentText() {
+            updatePreview();
+            const documentContent = document.getElementById('printable-area').innerText;
+            copyText(documentContent);
+            showToast("Đã sao chép toàn bộ văn bản SKKN!");
+        }
+
+        // Download HTML File
+        function downloadHtmlFile() {
+            updatePreview();
+            const content = document.getElementById('printable-area').innerHTML;
+            const fullHtml = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <title>Sáng Kiến Kinh Nghiệm</title>
+                    <style>
+                        body { font-family: 'Times New Roman', serif; line-height: 1.5; padding: 30px; max-width: 800px; margin: 0 auto; }
+                        h1, h2, h3 { color: #111; }
+                        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+                        th, td { border: 1px solid #333; padding: 8px; text-align: center; }
+                    </style>
+                </head>
+                <body>
+                    ${content}
+                </body>
+                </html>
+            `;
+            const blob = new Blob([fullHtml], { type: 'text/html' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `SKKN_${document.getElementById('teacher-name').value.replace(/\s+/g, '_')}.html`;
+            a.click();
+            showToast("Đã xuất file HTML thành công!");
+        }
+
+        // Toast Notification Helper
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+
+        // Reset All Form Data
+        function resetData() {
+            if (confirm("Thầy/cô có chắc chắn muốn làm mới toàn bộ dữ liệu?")) {
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
