@@ -1,1 +1,121 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trợ lý AI Tạo Kế Hoạch Bài Dạy - CV 7991</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { color: #1a5276; text-align: center; font-size: 24px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { font-weight: bold; display: block; margin-bottom: 5px; color: #333; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 14px; }
+        button { background-color: #27ae60; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 10px; font-weight: bold; }
+        button:hover { background-color: #219150; }
+        .output-box { margin-top: 25px; padding: 20px; border: 1px solid #ddd; background: #fafafa; border-radius: 5px; white-space: pre-wrap; font-family: 'Times New Roman', Times, serif; font-size: 16px; line-height: 1.6; }
+        .actions { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-copy { background-color: #2980b9; }
+        .btn-copy:hover { background-color: #1f618d; }
+    </style>
+</head>
+<body>
 
+<div class="container">
+    <h1>ỨNG DỤNG AI TẠO KẾ HOẠCH BÀI DẠY (CÔNG VĂN 7991)</h1>
+    
+    <div class="form-group">
+        <label for="apiKey">OpenAI API Key (hoặc Gemini API Key):</label>
+        <input type="password" id="apiKey" placeholder="Nhập API Key của thầy/cô tại đây...">
+    </div>
+
+    <div class="form-group">
+        <label for="subject">Môn học & Lớp:</label>
+        <input type="text" id="subject" placeholder="Ví dụ: Toán - Lớp 10">
+    </div>
+
+    <div class="form-group">
+        <label for="lesson">Tên bài học & Số tiết:</label>
+        <input type="text" id="lesson" placeholder="Ví dụ: Bài 3: Bất phương trình bậc nhất hai ẩn (2 tiết)">
+    </div>
+
+    <div class="form-group">
+        <label for="requirements">Yêu cầu cần đạt (Theo Chương trình GDPT 2018):</label>
+        <textarea id="requirements" rows="3" placeholder="Ví dụ: Nhận biết được bất phương trình bậc nhất hai ẩn; biểu diễn được miền nghiệm..."></textarea>
+    </div>
+
+    <button onclick="generateLessonPlan()">⚡ TẠO KẾ HOẠCH BÀI DẠY</button>
+
+    <div class="actions" id="actionButtons" style="display:none;">
+        <button class="btn-copy" onclick="copyResult()">📋 Sao chép nội dung</button>
+    </div>
+
+    <div id="output" class="output-box" style="display:none;"></div>
+</div>
+
+<script>
+async function generateLessonPlan() {
+    const apiKey = document.getElementById('apiKey').value.trim();
+    const subject = document.getElementById('subject').value.trim();
+    const lesson = document.getElementById('lesson').value.trim();
+    const requirements = document.getElementById('requirements').value.trim();
+
+    if (!apiKey) { alert('Vui lòng nhập API Key!'); return; }
+    if (!subject || !lesson) { alert('Vui lòng nhập đầy đủ thông tin Môn học và Bài học!'); return; }
+
+    const outputDiv = document.getElementById('output');
+    outputDiv.style.display = 'block';
+    outputDiv.innerText = 'Đang khởi tạo bài giảng theo chuẩn Công văn 7991, thầy/cô vui lòng đợi trong giây lát...';
+
+    const systemPrompt = `Bạn là chuyên gia giáo dục phổ thông Việt Nam. Hãy soạn Kế hoạch bài dạy (Giáo án) theo đúng chuẩn CÔNG VĂN 7991/BGDĐT-GDTrH.
+Yêu cầu cấu trúc bài soạn gồm:
+I. MỤC TIÊU (Về Kiến thức, Năng lực, Phẩm chất - gắn với Yêu cầu cần đạt)
+II. THIẾT BỊ DẠY HỌC VÀ HỌC LIỆU
+III. TIẾN TRÌNH DẠY HỌC
+Cấu trúc mỗi Hoạt động học (Mở đầu, Hình thành kiến thức, Luyện tập, Vận dụng) phải có đủ 4 mục:
+a) Mục tiêu
+b) Nội dung
+c) Sản phẩm
+d) Tổ chức thực hiện (Bước 1: Chuyển giao NV -> Bước 2: Thực hiện NV -> Bước 3: Báo cáo, thảo luận -> Bước 4: Kết luận, nhận định).`;
+
+    const userPrompt = `Môn học: ${subject}\nTên bài học: ${lesson}\nYêu cầu cần đạt: ${requirements}`;
+
+    try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: 'gpt-4o-mini',
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt }
+                ],
+                temperature: 0.7
+            })
+        });
+
+        const data = await response.json();
+        if (data.choices && data.choices.length > 0) {
+            outputDiv.innerText = data.choices[0].message.content;
+            document.getElementById('actionButtons').style.display = 'flex';
+        } else {
+            outputDiv.innerText = 'Có lỗi xảy ra trong quá trình xử lý: ' + (data.error?.message || 'Không có phản hồi từ API.');
+        }
+    } catch (err) {
+        outputDiv.innerText = 'Lỗi kết nối: ' + err.message;
+    }
+}
+
+function copyResult() {
+    const text = document.getElementById('output').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Đã sao chép Kế hoạch bài dạy!');
+    });
+}
+</script>
+
+</body>
+</html>
